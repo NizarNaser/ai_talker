@@ -253,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. API URLs
-    const API_BASE = 'http://127.0.0.1:8000/api';
-    const WS_URL = 'ws://127.0.0.1:8000/ws/translate/';
+    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
+    const WS_URL = 'wss://ai-talker-backend.onrender.com/ws/translate/';
 
     // 5. Toast Notifications
     window.showToast = function(message, type = 'success') {
@@ -690,7 +690,7 @@ function renderComments() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 4. API URLs
-    const API_BASE = 'http://127.0.0.1:8000/api';
+    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
 
     // Render comments
     renderComments();
