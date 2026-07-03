@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Talker - منصة الترجمة الفورية بالذكاء الاصطناعي</title>
+    <meta name="description" content="AI Talker: منصة ترجمة فورية عالمية تدعم جميع اللغات واللهجات باستخدام الذكاء الاصطناعي. ترجمة صوتية ونصية بدقة عالية.">
+    <meta name="keywords" content="ترجمة فورية, ذكاء اصطناعي, ترجمة صوتية, لهجات عربية, AI Translation">
+    
+    <!-- SEO & Social Meta Tags -->
+    <meta property="og:title" content="AI Talker - الترجمة الفورية">
+    <meta property="og:description" content="ترجم أي لغة وأي لهجة في ثوانٍ باستخدام أحدث تقنيات الذكاء الاصطناعي.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Schema Markup for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AI Talker",
+      "url": "https://www.aitalker.com",
+      "description": "منصة ترجمة فورية بالذكاء الاصطناعي"
+    }
+    </script>
+
+    <!-- Google Fonts: Cairo for Arabic, Inter for English -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Skeleton Loader (Hidden by JS when ready) -->
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="container">
+            <div class="logo">
+                <i class="fa-solid fa-microphone-lines"></i>
+                <h1>AI Talker</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" data-i18n="nav_home">الرئيسية</a></li>
+                    <li><a href="#translator" data-i18n="nav_translator">المترجم</a></li>
+                    <li><a href="#features" data-i18n="nav_features">المميزات</a></li>
+                    <li><a href="#comments" data-i18n="nav_comments">الآراء</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <select id="ui-lang-select" class="lang-select" style="width: auto; padding: 0.3rem 0.5rem; margin-left: 0.5rem;">
+                    <option value="ar">العربية</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                    <option value="de">Deutsch</option>
+                    <option value="zh">中文</option>
+                    <option value="ru">Русский</option>
+                </select>
+                <button id="theme-toggle" class="icon-btn" title="تبديل المظهر"><i class="fa-solid fa-moon"></i></button>
+                <button class="btn-primary" onclick="openLoginModal()"><i class="fa-brands fa-google"></i> <span data-i18n="login">تسجيل الدخول</span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Ad Banner (Header) -->
+    <div class="ad-banner" data-ad-slot="header">
+        <!-- مساحة إعلانية AdSense -->
+        <span>مساحة إعلانية</span>
+    </div>
+
+    <section class="hero">
+        <div class="container">
+            <h2 class="animate-up" data-i18n="hero_title">الترجمة الفورية لم تكن يوماً بهذه السهولة</h2>
+            <p class="animate-up delay-1" data-i18n="hero_subtitle">تحدث، اكتب، وترجم لأكثر من 100 لغة وما يزيد عن 20 لهجة عربية بدقة الذكاء الاصطناعي.</p>
+        </div>
+    </section>
+
+    <!-- Translator App Section -->
+    <section id="translator" class="translator-section">
+        <div class="container">
+            <div class="translator-container glass-panel">
+                <!-- Source Language -->
+                <div class="lang-box">
+                    <div class="lang-header">
+                        <select id="source-lang" class="lang-select">
+                            <optgroup label="اللغة العربية واللهجات" data-i18n-label="group_arabic">
+                                <option value="ar" data-i18n="lang_ar">العربية (الفصحى)</option>
+                                <option value="ar-eg" data-i18n="lang_ar_eg">العربية (المصرية)</option>
+                                <option value="ar-sy" data-i18n="lang_ar_sy">العربية (السورية)</option>
+                                <option value="ar-lb" data-i18n="lang_ar_lb">العربية (اللبنانية)</option>
+                                <option value="ar-jo" data-i18n="lang_ar_jo">العربية (الأردنية)</option>
+                                <option value="ar-ps" data-i18n="lang_ar_ps">العربية (الفلسطينية)</option>
+                                <option value="ar-iq" data-i18n="lang_ar_iq">العربية (العراقية)</option>
+                                <option value="ar-sa" data-i18n="lang_ar_sa">العربية (السعودية)</option>
+                                <option value="ar-ae" data-i18n="lang_ar_ae">العربية (الإماراتية)</option>
+                                <option value="ar-kw" data-i18n="lang_ar_kw">العربية (الكويتية)</option>
+                                <option value="ar-qa" data-i18n="lang_ar_qa">العربية (القطرية)</option>
+                                <option value="ar-bh" data-i18n="lang_ar_bh">العربية (البحرينية)</option>
+                                <option value="ar-om" data-i18n="lang_ar_om">العربية (العمانية)</option>
+                                <option value="ar-ye" data-i18n="lang_ar_ye">العربية (اليمنية)</option>
+                                <option value="ar-dz" data-i18n="lang_ar_dz">العربية (الجزائرية)</option>
+                                <option value="ar-ma" data-i18n="lang_ar_ma">العربية (المغربية)</option>
+                                <option value="ar-tn" data-i18n="lang_ar_tn">العربية (التونسية)</option>
+                                <option value="ar-ly" data-i18n="lang_ar_ly">العربية (الليبية)</option>
+                                <option value="ar-mr" data-i18n="lang_ar_mr">العربية (الموريتانية)</option>
+                            </optgroup>
+                            <optgroup label="اللغات العالمية" data-i18n-label="group_global">
+                                <option value="en" data-i18n="lang_en">الإنجليزية (English)</option>
+                                <option value="fr" data-i18n="lang_fr">الفرنسية (Français)</option>
+                                <option value="es" data-i18n="lang_es">الإسبانية (Español)</option>
+                                <option value="de" data-i18n="lang_de">الألمانية (Deutsch)</option>
+                                <option value="tr" data-i18n="lang_tr">التركية (Türkçe)</option>
+                                <option value="ru" data-i18n="lang_ru">الروسية (Русский)</option>
+                                <option value="zh-CN" data-i18n="lang_zh">الصينية المبسطة (简体中文)</option>
+                                <option value="ja" data-i18n="lang_ja">اليابانية (日本語)</option>
+                                <option value="ko" data-i18n="lang_ko">الكورية (한국어)</option>
+                                <option value="hi" data-i18n="lang_hi">الهندية (हिन्दी)</option>
+                                <option value="it" data-i18n="lang_it">الإيطالية (Italiano)</option>
+                                <option value="pt" data-i18n="lang_pt">البرتغالية (Português)</option>
+                                <option value="nl" data-i18n="lang_nl">الهولندية (Nederlands)</option>
+                                <option value="sv" data-i18n="lang_sv">السويدية (Svenska)</option>
+                                <option value="fa" data-i18n="lang_fa">الفارسية (فارسی)</option>
+                                <option value="ur" data-i18n="lang_ur">الأردية (اردو)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <textarea id="source-text" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
+                    <div class="controls">
+                        <button class="icon-btn mic-btn" title="تسجيل صوتي"><i class="fa-solid fa-microphone"></i></button>
+                    </div>
+                </div>
+
+                <!-- Middle Controls -->
+                <div class="middle-controls">
+                    <button class="icon-btn swap-btn" title="عكس اللغات"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+                    <button class="btn-translate" id="translate-btn"><span data-i18n="translate_now">ترجم الآن</span> <i class="fa-solid fa-language"></i></button>
+                </div>
+
+                <!-- Target Language -->
+                <div class="lang-box target-box">
+                    <div class="lang-header">
+                        <select id="target-lang" class="lang-select">
+                            <optgroup label="اللغات العالمية" data-i18n-label="group_global">
+                                <option value="en" data-i18n="lang_en">الإنجليزية (English)</option>
+                                <option value="fr" data-i18n="lang_fr">الفرنسية (Français)</option>
+                                <option value="es" data-i18n="lang_es">الإسبانية (Español)</option>
+                                <option value="de" data-i18n="lang_de">الألمانية (Deutsch)</option>
+                                <option value="tr" data-i18n="lang_tr">التركية (Türkçe)</option>
+                                <option value="ru" data-i18n="lang_ru">الروسية (Русский)</option>
+                                <option value="zh-CN" data-i18n="lang_zh">الصينية المبسطة (简体中文)</option>
+                                <option value="ja" data-i18n="lang_ja">اليابانية (日本語)</option>
+                                <option value="ko" data-i18n="lang_ko">الكورية (한국어)</option>
+                                <option value="hi" data-i18n="lang_hi">الهندية (हिन्दी)</option>
+                                <option value="it" data-i18n="lang_it">الإيطالية (Italiano)</option>
+                                <option value="pt" data-i18n="lang_pt">البرتغالية (Português)</option>
+                                <option value="nl" data-i18n="lang_nl">الهولندية (Nederlands)</option>
+                                <option value="sv" data-i18n="lang_sv">السويدية (Svenska)</option>
+                                <option value="fa" data-i18n="lang_fa">الفارسية (فارسی)</option>
+                                <option value="ur" data-i18n="lang_ur">الأردية (اردو)</option>
+                            </optgroup>
+                            <optgroup label="اللغة العربية" data-i18n-label="group_arabic">
+                                <option value="ar" data-i18n="lang_ar">العربية (الفصحى)</option>
+                                <option value="ar-eg" data-i18n="lang_ar_eg">العربية (المصرية)</option>
+                                <option value="ar-sa" data-i18n="lang_ar_sa">العربية (السعودية)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="skeleton-text hidden" id="target-skeleton"></div>
+                    <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا..."></textarea>
+                    <div class="controls">
+                        <button class="icon-btn target-mic-btn" title="رد صوتي من الجهة الأخرى"><i class="fa-solid fa-microphone"></i></button>
+                        <button class="icon-btn tts-btn" title="الاستماع للترجمة"><i class="fa-solid fa-volume-high"></i></button>
+                        <button class="icon-btn copy-btn" title="نسخ النص"><i class="fa-solid fa-copy"></i></button>
+                        <button class="icon-btn fav-btn" title="إضافة للمفضلة"><i class="fa-regular fa-heart"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="conversation-mode text-center mt-3">
+                <button class="btn-secondary"><i class="fa-solid fa-people-arrows"></i> <span data-i18n="live_conversation">وضع المحادثة المباشرة</span></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ad Banner (Content) -->
+    <div class="ad-banner my-4" data-ad-slot="content">
+        <span>مساحة إعلانية</span>
+    </div>
+
+    <!-- Likes Section -->
+    <section class="likes-section text-center">
+        <button id="like-site-btn" class="like-btn">
+            <i class="fa-solid fa-thumbs-up"></i> <span data-i18n="like_site">إعجاب بالموقع</span> 
+            <span id="likes-count">1000</span>
+        </button>
+    </section>
+
+    <!-- Comments Section -->
+    <section id="comments" class="comments-section">
+        <div class="container">
+            <h3 class="section-title" data-i18n="user_reviews">آراء المستخدمين</h3>
+            <div class="comments-grid" id="comments-container">
+                <!-- سيتم جلب التعليقات من الـ API وعرضها هنا -->
+            </div>
+            <div class="add-comment text-center mt-3">
+                <button class="btn-primary" onclick="openCommentModal()" data-i18n="add_comment">أضف تعليقك</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-info">
+                <div class="logo">
+                    <i class="fa-solid fa-microphone-lines"></i> AI Talker
+                </div>
+                <p>دعم كامل لجميع اللغات واللهجات.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="#"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>روابط هامة</h4>
+                <ul>
+                    <li><a href="#">من نحن</a></li>
+                    <li><a href="#">الأسئلة الشائعة</a></li>
+                    <li><a href="#">سياسة الخصوصية</a></li>
+                    <li><a href="#">شروط الاستخدام</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>تواصل معنا</h4>
+                <form id="contact-form">
+                    <input type="email" placeholder="بريدك الإلكتروني" required>
+                    <textarea placeholder="رسالتك" required></textarea>
+                    <button type="submit" class="btn-primary">إرسال</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AI Talker. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <button class="close-modal-btn" onclick="closeLoginModal()"><i class="fa-solid fa-times"></i></button>
+            <h3 data-i18n="login_title">تسجيل الدخول / إنشاء حساب</h3>
+            <p data-i18n="login_subtitle">احفظ ترجماتك المفضلة وشارك في المجتمع</p>
+            
+            <div class="social-login">
+                <button class="btn-social google-btn">
+                    <i class="fa-brands fa-google" style="color: #ea4335;"></i>
+                    <span data-i18n="login_google">المتابعة باستخدام Google</span>
+                </button>
+            </div>
+            
+            <div class="divider">
+                <span data-i18n="or">أو</span>
+            </div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" data-i18n-placeholder="email_placeholder" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" data-i18n-placeholder="password_placeholder" placeholder="كلمة المرور" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" data-i18n="login_submit">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="comment-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <button class="close-modal-btn" onclick="closeCommentModal()"><i class="fa-solid fa-times"></i></button>
+            <h3 data-i18n="comment_title">أضف رأيك</h3>
+            <p data-i18n="comment_subtitle">رأيك يهمنا في تطوير المترجم</p>
+            
+            <form id="comment-form">
+                <div class="input-group">
+                    <textarea data-i18n-placeholder="comment_placeholder" placeholder="اكتب رأيك هنا..." required rows="4" style="width:100%; border-radius:8px; border:1px solid var(--glass-border); background:var(--bg-color); color:var(--text-color); padding:1rem; font-family:inherit; resize:none;"></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" data-i18n="comment_submit">نشر التعليق</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
