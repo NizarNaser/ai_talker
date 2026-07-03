@@ -32,7 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     
     # مكتبات خارجية
     'rest_framework',
@@ -147,3 +149,24 @@ X_FRAME_OPTIONS = 'DENY'
 # إعدادات نماذج المستخدم المخصصة إذا لزم الأمر
 AUTH_USER_MODEL = 'translator.User'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# إعدادات Cloudinary لرفع الملفات
+import os
+CLOUDINARY_STORAGE = {
+    'CLOUDINARY_URL': os.environ.get('CLOUDINARY_URL')
+}
+
+# إعدادات تخزين الملفات (لـ Django 4.2 والإصدارات الأحدث)
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# مسار ملفات الميديا (مثل الصوتيات التي يتم إنشاؤها)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
