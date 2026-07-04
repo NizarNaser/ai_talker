@@ -510,10 +510,15 @@ document.addEventListener('DOMContentLoaded', () => {
             activeRecognition = recognition;
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent) || /wv|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
+            
+            if (isWebView) {
+                showToast('تطبيق الترجمة لا يدعم متصفحات التطبيقات (مثل تليجرام/فيسبوك). يرجى فتح الرابط في متصفح سفاري أو كروم الخارجي.', 'error');
+            }
+
             recognition.continuous = false;
             // interimResults causes silent failures on many mobile browsers (especially iOS Safari)
             recognition.interimResults = !isMobile;
-            recognition.maxAlternatives = 1;
             recognition.lang = langCode === 'ar' ? 'ar-SA' : langCode;
             
             let hasSpeech = false;
