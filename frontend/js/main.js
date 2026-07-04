@@ -509,8 +509,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const recognition = new SpeechRecognition();
             activeRecognition = recognition;
 
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             recognition.continuous = false;
-            recognition.interimResults = true;
+            // interimResults causes silent failures on many mobile browsers (especially iOS Safari)
+            recognition.interimResults = !isMobile;
+            recognition.maxAlternatives = 1;
             recognition.lang = langCode === 'ar' ? 'ar-SA' : langCode;
             
             let hasSpeech = false;
@@ -524,7 +527,8 @@ document.addEventListener('DOMContentLoaded', () => {
             recognition.onresult = (event) => {
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
+                    // Mobile browsers might not correctly set isFinal if interimResults is false
+                    if (event.results[i].isFinal || !recognition.interimResults) {
                         finalTranscript += event.results[i][0].transcript;
                     }
                 }
