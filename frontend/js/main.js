@@ -511,9 +511,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent) || /wv|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
+            const isOpera = /OPR|Opera/i.test(navigator.userAgent);
             
-            if (isWebView) {
-                showToast('تطبيق الترجمة لا يدعم متصفحات التطبيقات (مثل تليجرام/فيسبوك). يرجى فتح الرابط في متصفح سفاري أو كروم الخارجي.', 'error');
+            if (isWebView || isOpera) {
+                showToast('الميكروفون لا يعمل على متصفح أوبرا أو متصفحات التطبيقات. يرجى فتح الرابط باستخدام متصفح جوجل كروم (Google Chrome) أو سفاري.', 'error');
             }
 
             recognition.continuous = false;
