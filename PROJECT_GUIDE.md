@@ -34,7 +34,7 @@ python manage.py runserver
 بالنسبة للواجهة الأمامية (Frontend)، بما أنها مبنية بتقنيات Vanilla (HTML, CSS, JS)، يمكنك فتح ملف `index.html` في المتصفح أو تشغيل سيرفر بسيط:
 ```bash
 cd frontend
-python -m http.server 8001
+python3 -m http.server 8001
 ```
 
 ## 4. طريقة إنشاء قاعدة البيانات
@@ -59,7 +59,7 @@ python -m http.server 8001
 6. انسخ القيم والصقها في ملف `.env`.
 
 ## 6. الدليل الشامل لرفع المشروع مجاناً (خطوة بخطوة)
-لرفع المشروع بالكامل مجاناً، سنستخدم خدمات مجانية ممتازة: **Neon** (لقاعدة البيانات)، **Render** (للباك اند)، و **Cloudflare Pages / Cloudinary** (للواجهة الأمامية وتخزين الملفات).
+لرفع المشروع بالكامل مجاناً، سنستخدم خدمات مجانية ممتازة: **Neon** (لقاعدة البيانات)، **Render** (للباك اند)، و **Vercel / Cloudinary** (للواجهة الأمامية وتخزين الملفات).
 
 ### أ. رفع قاعدة البيانات على Neon (مجاني)
 1. اذهب إلى موقع [Neon.tech](https://neon.tech/) وقم بإنشاء حساب مجاني.
@@ -98,16 +98,17 @@ postgresql://neondb_owner:npg_VJuXLw2B4nZc@ep-polished-sound-aia1vcw7.c-4.us-eas
    - مفاتيح Google OAuth ومفاتيح Cloudinary.
 7. انقر على **Create Web Service**. سيستغرق البناء دقائق، وسيعطيك Render رابطاً (مثل `https://ai-talker-backend.onrender.com`).
 
-### د. رفع الواجهة الأمامية على Cloudflare Pages (مجاني)
-1. في حسابك على [Cloudflare Pages](https://pages.cloudflare.com/)، اختر **Workers & Pages** ثم انقر على **Create application** واختر **Pages**.
-2. انقر على **Connect to Git** واربط مستودع المشروع الخاص بك.
-3. في إعدادات البناء:
-   - **Project name**: `ai-talker-frontend`
-   - **Framework preset**: `None`
-   - **Build output directory**: `frontend`
-4. **هام جداً:** يجب تعديل رابط الـ API في كود JavaScript الخاص بالواجهة الأمامية ليشير إلى رابط الباك اند الذي أنشأته على Render في الخطوة السابقة.
-5. انقر على **Save and Deploy**.
-6. بعد اكتمال البناء، سيُمنح مشروعك رابطاً مجانياً (مثل `https://ai-talker-frontend.pages.dev`).
+### د. رفع الواجهة الأمامية على Vercel (مجاني وبديل ممتاز)
+1. اذهب إلى موقع [Vercel](https://vercel.com/) وقم بإنشاء حساب باستخدام حسابك في GitHub.
+2. من لوحة التحكم (Dashboard)، انقر على **Add New...** ثم اختر **Project**.
+3. قم باستيراد (Import) مستودع المشروع الخاص بك من GitHub.
+4. في إعدادات المشروع (Configure Project):
+   - **Project Name**: `ai-talker-frontend`
+   - **Framework Preset**: `Other`
+   - **Root Directory**: انقر على `Edit` واختر المجلد `frontend` (حيث توجد ملفات الواجهة).
+5. **هام جداً:** يجب تعديل رابط الـ API في كود JavaScript الخاص بالواجهة الأمامية ليشير إلى رابط الباك اند الذي أنشأته على Render في الخطوة السابقة، ورفع هذه التعديلات إلى GitHub.
+6. انقر على زر **Deploy**.
+7. بعد اكتمال البناء، سيُمنح مشروعك رابطاً مجانياً (مثل `https://ai-talker-frontend.vercel.app`).
 
 بهذا يكون مشروعك مرفوعاً بالكامل ليعمل مجاناً على الإنترنت!
 
@@ -124,7 +125,7 @@ postgresql://neondb_owner:npg_VJuXLw2B4nZc@ep-polished-sound-aia1vcw7.c-4.us-eas
 ## 9. طريقة التحديث
 1. قم بإجراء التعديلات محلياً وتأكد من عمل الاختبارات: `python manage.py test`
 2. قم برفع التعديلات إلى المستودع (GitHub).
-3. ستقوم خدمات مثل Render و Cloudflare Pages بسحب التحديثات تلقائياً (Auto Deploy) وإعادة بناء المشروع.
+3. ستقوم خدمات مثل Render و Vercel بسحب التحديثات تلقائياً (Auto Deploy) وإعادة بناء المشروع.
 4. في حال وجود تعديلات على قاعدة البيانات، سيتم تنفيذ `migrate` تلقائياً بناءً على إعدادات البناء في Render.
 
 ## 10. طريقة الصيانة

@@ -19,19 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
             group_arabic: "اللغة العربية واللهجات",
             group_global: "اللغات العالمية",
             lang_ar: "العربية (الفصحى)", lang_ar_eg: "العربية (المصرية)", lang_ar_sa: "العربية (السعودية)", lang_ar_sy: "العربية (السورية)", lang_ar_lb: "العربية (اللبنانية)", lang_ar_jo: "العربية (الأردنية)", lang_ar_ps: "العربية (الفلسطينية)", lang_ar_iq: "العربية (العراقية)", lang_ar_ae: "العربية (الإماراتية)", lang_ar_kw: "العربية (الكويتية)", lang_ar_qa: "العربية (القطرية)", lang_ar_bh: "العربية (البحرينية)", lang_ar_om: "العربية (العمانية)", lang_ar_ye: "العربية (اليمنية)", lang_ar_dz: "العربية (الجزائرية)", lang_ar_ma: "العربية (المغربية)", lang_ar_tn: "العربية (التونسية)", lang_ar_ly: "العربية (الليبية)", lang_ar_mr: "العربية (الموريتانية)",
-            lang_en: "الإنجليزية (English)", lang_fr: "الفرنسية (Français)", lang_es: "الإسبانية (Español)", lang_de: "الألمانية (Deutsch)", lang_tr: "التركية (Türkçe)", lang_ru: "الروسية (Русский)", lang_zh: "الصينية المبسطة (简体中文)", lang_ja: "اليابانية (日本語)", lang_ko: "الكورية (한국어)", lang_hi: "الهندية (हिन्दी)", lang_it: "الإيطالية (Italiano)", lang_pt: "البرتغالية (Português)", lang_nl: "الهولندية (Nederlands)", lang_sv: "السويدية (Svenska)", lang_fa: "الفارسية (فارسی)", lang_ur: "الأردية (اردو)"
+            lang_en: "الإنجليزية (English)", lang_fr: "الفرنسية (Français)", lang_es: "الإسبانية (Español)", lang_de: "الألمانية (Deutsch)", lang_tr: "التركية (Türkçe)", lang_ru: "الروسية (Русский)", lang_zh: "الصينية المبسطة (简体中文)", lang_zh_tw: "الصينية التقليدية (繁體中文)", lang_ja: "اليابانية (日本語)", lang_ko: "الكورية (한국어)", lang_hi: "الهندية (हिन्दी)", lang_it: "الإيطالية (Italiano)", lang_pt: "البرتغالية (Português)", lang_nl: "الهولندية (Nederlands)", lang_sv: "السويدية (Svenska)", lang_fa: "الفارسية (فارسی)", lang_ur: "الأردية (اردو)"
         },
         en: {
             group_arabic: "Arabic & Dialects",
             group_global: "Global Languages",
             lang_ar: "Arabic (Standard)", lang_ar_eg: "Arabic (Egyptian)", lang_ar_sa: "Arabic (Saudi)", lang_ar_sy: "Arabic (Syrian)", lang_ar_lb: "Arabic (Lebanese)", lang_ar_jo: "Arabic (Jordanian)", lang_ar_ps: "Arabic (Palestinian)", lang_ar_iq: "Arabic (Iraqi)", lang_ar_ae: "Arabic (Emirati)", lang_ar_kw: "Arabic (Kuwaiti)", lang_ar_qa: "Arabic (Qatari)", lang_ar_bh: "Arabic (Bahraini)", lang_ar_om: "Arabic (Omani)", lang_ar_ye: "Arabic (Yemeni)", lang_ar_dz: "Arabic (Algerian)", lang_ar_ma: "Arabic (Moroccan)", lang_ar_tn: "Arabic (Tunisian)", lang_ar_ly: "Arabic (Libyan)", lang_ar_mr: "Arabic (Mauritanian)",
-            lang_en: "English", lang_fr: "French", lang_es: "Spanish", lang_de: "German", lang_tr: "Turkish", lang_ru: "Russian", lang_zh: "Chinese (Simplified)", lang_ja: "Japanese", lang_ko: "Korean", lang_hi: "Hindi", lang_it: "Italian", lang_pt: "Portuguese", lang_nl: "Dutch", lang_sv: "Swedish", lang_fa: "Persian", lang_ur: "Urdu"
+            lang_en: "English", lang_fr: "French", lang_es: "Spanish", lang_de: "German", lang_tr: "Turkish", lang_ru: "Russian", lang_zh: "Chinese (Simplified)", lang_zh_tw: "Chinese (Traditional)", lang_ja: "Japanese", lang_ko: "Korean", lang_hi: "Hindi", lang_it: "Italian", lang_pt: "Portuguese", lang_nl: "Dutch", lang_sv: "Swedish", lang_fa: "Persian", lang_ur: "Urdu"
         },
         fr: {
             group_arabic: "Arabe & Dialectes",
             group_global: "Langues Mondiales",
             lang_ar: "Arabe (Standard)", lang_ar_eg: "Arabe (Égyptien)", lang_ar_sa: "Arabe (Saoudien)", lang_ar_sy: "Arabe (Syrien)", lang_ar_lb: "Arabe (Libanais)", lang_ar_jo: "Arabe (Jordanien)", lang_ar_ps: "Arabe (Palestinien)", lang_ar_iq: "Arabe (Irakien)", lang_ar_ae: "Arabe (Émirati)", lang_ar_kw: "Arabe (Koweïtien)", lang_ar_qa: "Arabe (Qatari)", lang_ar_bh: "Arabe (Bahreïni)", lang_ar_om: "Arabe (Omanais)", lang_ar_ye: "Arabe (Yéménite)", lang_ar_dz: "Arabe (Algérien)", lang_ar_ma: "Arabe (Marocain)", lang_ar_tn: "Arabe (Tunisien)", lang_ar_ly: "Arabe (Libyen)", lang_ar_mr: "Arabe (Mauritanien)",
-            lang_en: "Anglais", lang_fr: "Français", lang_es: "Espagnol", lang_de: "Allemand", lang_tr: "Turc", lang_ru: "Russe", lang_zh: "Chinois", lang_ja: "Japonais", lang_ko: "Coréen", lang_hi: "Hindi", lang_it: "Italien", lang_pt: "Portugais", lang_nl: "Néerlandais", lang_sv: "Suédois", lang_fa: "Persan", lang_ur: "Ourdou"
+            lang_en: "Anglais", lang_fr: "Français", lang_es: "Espagnol", lang_de: "Allemand", lang_tr: "Turc", lang_ru: "Russe", lang_zh: "Chinois (Simplifié)", lang_zh_tw: "Chinois (Traditionnel)", lang_ja: "Japonais", lang_ko: "Coréen", lang_hi: "Hindi", lang_it: "Italien", lang_pt: "Portugais", lang_nl: "Néerlandais", lang_sv: "Suédois", lang_fa: "Persan", lang_ur: "Ourdou"
         }
     };
     // Fallback for other languages to English
@@ -253,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. API URLs
-    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
-    const WS_URL = 'wss://ai-talker-backend.onrender.com/ws/translate/';
+    const API_BASE = 'http://127.0.0.1:8000/api';
+    const WS_URL = 'ws://127.0.0.1:8000/ws/translate/'; // Changed to local for development
 
     // 5. Toast Notifications
     window.showToast = function(message, type = 'success') {
@@ -394,6 +394,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     // نطق النص الجديد
+                    // Restore button spinner
+                    const translateBtn = document.getElementById('translate-btn');
+                    if (translateBtn) {
+                        const icon = translateBtn.querySelector('i');
+                        if (icon && translateBtn.dataset.originalIcon) {
+                            icon.className = translateBtn.dataset.originalIcon;
+                        }
+                        translateBtn.disabled = false;
+                    }
+
                     if (data.audio_base64) {
                         try {
                             const audio = new Audio("data:audio/mp3;base64," + data.audio_base64);
@@ -421,6 +431,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                 } else if(data.status === 'error') {
+                    // Restore button spinner
+                    const translateBtn = document.getElementById('translate-btn');
+                    if (translateBtn) {
+                        const icon = translateBtn.querySelector('i');
+                        if (icon && translateBtn.dataset.originalIcon) {
+                            icon.className = translateBtn.dataset.originalIcon;
+                        }
+                        translateBtn.disabled = false;
+                    }
                     showToast('خطأ من السيرفر: ' + data.message, 'error');
                     targetSkeleton.classList.add('hidden');
                     targetText.classList.remove('hidden');
@@ -431,6 +450,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         ws.onerror = (err) => {
             console.error('WebSocket Error:', err);
+            // Restore button spinner
+            const translateBtn = document.getElementById('translate-btn');
+            if (translateBtn) {
+                const icon = translateBtn.querySelector('i');
+                if (icon && translateBtn.dataset.originalIcon) {
+                    icon.className = translateBtn.dataset.originalIcon;
+                }
+                translateBtn.disabled = false;
+            }
             showToast('فشل الاتصال بسيرفر الترجمة الفورية', 'error');
             targetSkeleton.classList.add('hidden');
             targetText.classList.remove('hidden');
@@ -452,6 +480,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (skeletonEl) {
             targetEl.classList.add('hidden');
             skeletonEl.classList.remove('hidden');
+        }
+        
+        // Add spinner to button
+        const translateBtn = document.getElementById('translate-btn');
+        if (translateBtn) {
+            const icon = translateBtn.querySelector('i');
+            if (icon) {
+                translateBtn.dataset.originalIcon = icon.className;
+                icon.className = 'fa-solid fa-spinner fa-spin';
+            }
+            translateBtn.disabled = true;
         }
 
         if(ws && ws.readyState === WebSocket.OPEN) {
@@ -700,7 +739,7 @@ function renderComments() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 4. API URLs
-    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
+    const API_BASE = 'http://127.0.0.1:8000/api';
 
     // Render comments
     renderComments();
@@ -924,5 +963,130 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.style.animation = 'slideInRight 0.3s backwards reverse';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
+    };
+
+    // --- File Upload & Translation Logic ---
+    async function handleFileUpload(file) {
+        if (!file) return;
+
+        // تفريغ النصوص السابقة بمجرد رفع ملف جديد
+        document.getElementById('source-text').value = '';
+        document.getElementById('target-text').value = '';
+
+        const sourceLang = document.getElementById('source-lang').value;
+        const targetLang = document.getElementById('target-lang').value;
+        const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+        
+        // إظهار اللودر
+        const fileLoader = document.getElementById('file-translation-loader');
+        if (fileLoader) fileLoader.classList.remove('hidden');
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('source_lang', sourceLang);
+        formData.append('target_lang', targetLang);
+
+        try {
+            const res = await fetch(`${API_BASE}/upload-translate/`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('source-text').value = data.original_text;
+                document.getElementById('target-text').value = data.translated_text;
+                window.showToast(isAr ? 'تم استخراج وترجمة النص بنجاح!' : 'File text extracted and translated successfully!', 'success');
+            } else {
+                const errData = await res.json();
+                window.showToast(errData.error || (isAr ? 'حدث خطأ أثناء الترجمة' : 'Error during translation'), 'error');
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            window.showToast(isAr ? 'فشل الاتصال بالخادم.' : 'Failed to connect to the server.', 'error');
+        } finally {
+            // إخفاء اللودر عند الانتهاء (سواء بنجاح أو بخطأ)
+            if (fileLoader) fileLoader.classList.add('hidden');
+        }
+    }
+
+    const fileUploadInput = document.getElementById('file-upload');
+    if (fileUploadInput) {
+        fileUploadInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = ''; // Reset
+            }
+        });
+    }
+
+    const cameraCaptureInput = document.getElementById('camera-capture');
+    if (cameraCaptureInput) {
+        cameraCaptureInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = ''; // Reset
+            }
+        });
+    }
+
+    // --- File Download Logic ---
+    window.downloadTranslation = function(format) {
+        const text = document.getElementById('target-text').value;
+        const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+        if (!text) {
+            window.showToast(isAr ? 'لا يوجد نص لتحميله' : 'No text to download', 'error');
+            return;
+        }
+
+        const filename = `translation_${Date.now()}.${format}`;
+        
+        if (format === 'txt') {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            window.showToast(isAr ? 'تم تحميل ملف النص بنجاح!' : 'TXT file downloaded successfully!', 'success');
+        } else if (format === 'pdf' || format === 'docx') {
+            // For a production app, generating PDF or DOCX client-side requires libraries like jsPDF or docx.
+            // For simplicity here, we simulate it via a txt file or use a simple blob since we lack the libraries without npm.
+            // Actually, we can generate a simple HTML-based docx and print dialog for PDF.
+            
+            if (format === 'pdf') {
+                const printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write('<html><head><title>Translation</title>');
+                printWindow.document.write('<style>body{font-family: Arial, sans-serif; padding: 20px;} p{white-space: pre-wrap; direction: auto;}</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<p>' + text.replace(/\n/g, '<br>') + '</p>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
+            } else {
+                // simple docx format using HTML
+                const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Translation</title></head><body>";
+                const footer = "</body></html>";
+                const sourceHTML = header + "<p style='direction:auto'>" + text.replace(/\n/g, "<br>") + "</p>" + footer;
+                
+                const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            window.showToast(isAr ? `تم محاولة حفظ ملف ${format.toUpperCase()} بنجاح!` : `${format.toUpperCase()} file generated!`, 'success');
+        }
+        
+        // Hide dropdown
+        const options = document.getElementById('download-options');
+        if (options) options.classList.add('hidden');
     };
 });

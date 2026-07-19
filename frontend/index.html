@@ -41,6 +41,22 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- File Translation Loader Overlay -->
+    <div id="file-translation-loader" class="file-loader-overlay hidden">
+        <div class="file-loader-content glass-panel">
+            <div class="file-spinner">
+                <div class="animated-files">
+                    <i class="fa-solid fa-file-lines doc-icon"></i>
+                    <i class="fa-solid fa-wand-magic-sparkles magic-icon"></i>
+                    <i class="fa-solid fa-language lang-icon"></i>
+                </div>
+            </div>
+            <h4 data-i18n="translating_file" style="margin: 0; font-size: 1.3rem;">جاري معالجة وترجمة الملف...</h4>
+            <p data-i18n="please_wait" style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">يرجى الانتظار، قد تستغرق العملية بضع ثوانٍ</p>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="glass-header">
         <div class="container">
@@ -72,10 +88,9 @@
         </div>
     </header>
 
-    <!-- Ad Banner (Header) -->
-    <div class="ad-banner" data-ad-slot="header">
-        <!-- مساحة إعلانية AdSense -->
-        <span>مساحة إعلانية</span>
+    <!-- Ad Banner (Header) - Leaderboard -->
+    <div class="ad-banner ad-leaderboard" data-ad-slot="header">
+        <span>مساحة إعلانية (728x90)</span>
     </div>
 
     <section class="hero">
@@ -122,6 +137,7 @@
                                 <option value="tr" data-i18n="lang_tr">التركية (Türkçe)</option>
                                 <option value="ru" data-i18n="lang_ru">الروسية (Русский)</option>
                                 <option value="zh-CN" data-i18n="lang_zh">الصينية المبسطة (简体中文)</option>
+                                <option value="zh-TW" data-i18n="lang_zh_tw">الصينية التقليدية (繁體中文)</option>
                                 <option value="ja" data-i18n="lang_ja">اليابانية (日本語)</option>
                                 <option value="ko" data-i18n="lang_ko">الكورية (한국어)</option>
                                 <option value="hi" data-i18n="lang_hi">الهندية (हिन्दी)</option>
@@ -135,8 +151,12 @@
                         </select>
                     </div>
                     <textarea id="source-text" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
-                    <div class="controls">
+                    <div class="controls" style="flex-wrap: wrap; gap: 10px;">
                         <button class="icon-btn mic-btn" title="تسجيل صوتي"><i class="fa-solid fa-microphone"></i></button>
+                        <input type="file" id="file-upload" accept="image/*,.pdf" style="display: none;">
+                        <label for="file-upload" class="icon-btn" title="تحميل ملف أو صورة" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-file-upload"></i></label>
+                        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;">
+                        <label for="camera-capture" class="icon-btn" title="التقاط صورة بالكاميرا" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-camera"></i></label>
                     </div>
                 </div>
 
@@ -158,6 +178,7 @@
                                 <option value="tr" data-i18n="lang_tr">التركية (Türkçe)</option>
                                 <option value="ru" data-i18n="lang_ru">الروسية (Русский)</option>
                                 <option value="zh-CN" data-i18n="lang_zh">الصينية المبسطة (简体中文)</option>
+                                <option value="zh-TW" data-i18n="lang_zh_tw">الصينية التقليدية (繁體中文)</option>
                                 <option value="ja" data-i18n="lang_ja">اليابانية (日本語)</option>
                                 <option value="ko" data-i18n="lang_ko">الكورية (한국어)</option>
                                 <option value="hi" data-i18n="lang_hi">الهندية (हिन्दी)</option>
@@ -177,11 +198,19 @@
                     </div>
                     <div class="skeleton-text hidden" id="target-skeleton"></div>
                     <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا..."></textarea>
-                    <div class="controls">
+                    <div class="controls" style="flex-wrap: wrap; gap: 10px;">
                         <button class="icon-btn target-mic-btn" title="رد صوتي من الجهة الأخرى"><i class="fa-solid fa-microphone"></i></button>
                         <button class="icon-btn tts-btn" title="الاستماع للترجمة"><i class="fa-solid fa-volume-high"></i></button>
                         <button class="icon-btn copy-btn" title="نسخ النص"><i class="fa-solid fa-copy"></i></button>
                         <button class="icon-btn fav-btn" title="إضافة للمفضلة"><i class="fa-regular fa-heart"></i></button>
+                        <div class="download-dropdown" style="position: relative; display: inline-block;">
+                            <button class="icon-btn" title="حفظ الترجمة" onclick="document.getElementById('download-options').classList.toggle('hidden')"><i class="fa-solid fa-download"></i></button>
+                            <div id="download-options" class="hidden" style="position: absolute; top: 100%; right: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px; z-index: 10; display: flex; flex-direction: column; gap: 5px; min-width: 100px;">
+                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('txt')">TXT</button>
+                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('pdf')">PDF</button>
+                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('docx')">DOCX</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,9 +221,9 @@
         </div>
     </section>
 
-    <!-- Ad Banner (Content) -->
-    <div class="ad-banner my-4" data-ad-slot="content">
-        <span>مساحة إعلانية</span>
+    <!-- Ad Banner (Content) - Responsive -->
+    <div class="ad-banner ad-responsive my-4" data-ad-slot="content">
+        <span>مساحة إعلانية (متجاوبة)</span>
     </div>
 
     <!-- Likes Section -->
@@ -206,6 +235,15 @@
     </section>
 
     <!-- Comments Section -->
+    <div class="container" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        <div class="ad-banner ad-large-rectangle my-4" data-ad-slot="comments-left">
+            <span>مساحة إعلانية (336x280)</span>
+        </div>
+        <div class="ad-banner ad-large-rectangle my-4" data-ad-slot="comments-right">
+            <span>مساحة إعلانية (336x280)</span>
+        </div>
+    </div>
+
     <section id="comments" class="comments-section">
         <div class="container">
             <h3 class="section-title" data-i18n="user_reviews">آراء المستخدمين</h3>
@@ -237,10 +275,10 @@
             <div class="footer-links">
                 <h4>روابط هامة</h4>
                 <ul>
-                    <li><a href="#">من نحن</a></li>
-                    <li><a href="#">الأسئلة الشائعة</a></li>
-                    <li><a href="#">سياسة الخصوصية</a></li>
-                    <li><a href="#">شروط الاستخدام</a></li>
+                    <li><a href="about.html">من نحن</a></li>
+                    <li><a href="faq.html">الأسئلة الشائعة</a></li>
+                    <li><a href="privacy.html">سياسة الخصوصية</a></li>
+                    <li><a href="terms.html">شروط الاستخدام</a></li>
                 </ul>
             </div>
             <div class="footer-contact">

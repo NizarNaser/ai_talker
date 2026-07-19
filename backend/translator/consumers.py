@@ -31,9 +31,19 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             # تم الاستبدال واستخدام deep-translator للقيام بترجمة حقيقية مجانية
             from deep_translator import GoogleTranslator
             
-            # معالجة أكواد اللغات لتتوافق مع المترجم (مثلاً ar-sa إلى ar)
-            src_lang = source_lang.split('-')[0]
-            tgt_lang = target_lang.split('-')[0]
+            def map_lang(lang):
+                if not lang: return 'auto'
+                lang_lower = lang.strip().lower()
+                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)']:
+                    return 'zh-CN'
+                if lang_lower in ['zh-tw', 'chinese (traditional)']:
+                    return 'zh-TW'
+                if lang_lower.startswith('ar-'):
+                    return 'ar'
+                return lang
+
+            src_lang = map_lang(source_lang)
+            tgt_lang = map_lang(target_lang)
 
             def perform_translation():
                 try:
@@ -45,7 +55,7 @@ class TranslationConsumer(AsyncWebsocketConsumer):
                         import io
                         tts_lang = tgt_lang
                         # gTTS supports zh-CN and zh-TW directly
-                        if tgt_lang == 'zh': tts_lang = 'zh-CN' 
+                        if tgt_lang == 'zh': tts_lang = 'zh-CN'
                         tts = gTTS(text=res_text, lang=tts_lang)
                         fp = io.BytesIO()
                         tts.write_to_fp(fp)

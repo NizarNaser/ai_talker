@@ -107,3 +107,109 @@ class ContactView(views.APIView):
             return Response({'message': 'تم إرسال رسالتك بنجاح. شكراً لتواصلك معنا!'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': 'حدث خطأ أثناء إرسال الرسالة.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FileUploadTranslateView(views.APIView):
+    """واجهة لرفع ملف أو صورة، استخراج النص، وترجمته"""
+    permission_classes = [AllowAny] # Or IsAuthenticated depending on requirement
+
+    def post(self, request):
+        file_obj = request.FILES.get('file')
+        target_lang = request.data.get('target_lang', 'ar') # Default to Arabic
+        source_lang = request.data.get('source_lang', 'auto')
+        
+        if not file_obj:
+            return Response({'error': 'لم يتم العثور على ملف في الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        extracted_text = ""
+        file_name = file_obj.name.lower()
+
+        try:
+            # 1. Extract Text
+            if file_name.endswith('.pdf'):
+                try:
+                    import fitz  # PyMuPDF
+                    pdf_doc = fitz.open(stream=file_obj.read(), filetype="pdf")
+                    for page_num in range(len(pdf_doc)):
+                        page = pdf_doc.load_page(page_num)
+                        extracted_text += page.get_text() + "\n"
+                except ImportError:
+                    return Response({'error': 'مكتبة استخراج النصوص من PDF غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+            elif file_name.endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                try:
+                    import easyocr
+                    import numpy as np
+                    from PIL import Image
+                    import io
+
+                    # Load image
+                    image_bytes = file_obj.read()
+                    image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+                    img_array = np.array(image)
+                    
+                    # Determine OCR language based on source_lang
+                    ocr_langs = ['ar', 'en']
+                    if source_lang in ['zh-CN', 'zh']:
+                        ocr_langs = ['ch_sim', 'en']
+                    elif source_lang == 'zh-TW':
+                        ocr_langs = ['ch_tra', 'en']
+                    elif source_lang == 'ru':
+                        ocr_langs = ['ru', 'en']
+                    elif source_lang == 'ja':
+                        ocr_langs = ['ja', 'en']
+                    elif source_lang == 'ko':
+                        ocr_langs = ['ko', 'en']
+                    elif source_lang in ['fr', 'es', 'de', 'it', 'pt', 'nl', 'sv', 'tr']:
+                        # Use English as base for Latin characters since we don't load all specific Latin models to save memory
+                        ocr_langs = ['en']
+
+                    # Initialize EasyOCR with selected languages
+                    reader = easyocr.Reader(ocr_langs, gpu=False) 
+                    result = reader.readtext(img_array, detail=0)
+                    extracted_text = " ".join(result)
+                except ImportError:
+                    return Response({'error': 'مكتبات التعرف على الصور غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            else:
+                return Response({'error': 'نوع الملف غير مدعوم.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            extracted_text = extracted_text.strip()
+            if not extracted_text:
+                return Response({'error': 'لم يتم العثور على نص في الملف/الصورة.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 2. Translate Text
+            from deep_translator import GoogleTranslator
+            
+            def map_lang(lang):
+                if not lang: return 'auto'
+                lang_lower = lang.strip().lower()
+                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)']:
+                    return 'zh-CN'
+                if lang_lower in ['zh-tw', 'chinese (traditional)']:
+                    return 'zh-TW'
+                if lang_lower.startswith('ar-'):
+                    return 'ar'
+                return lang
+
+            safe_source = map_lang(source_lang)
+            safe_target = map_lang(target_lang)
+            
+            translator = GoogleTranslator(source=safe_source, target=safe_target)
+            
+            # Text can be long, so chunk it if necessary. Deep-translator handles chunks up to 5000 chars.
+            chunk_size = 4500
+            translated_chunks = []
+            for i in range(0, len(extracted_text), chunk_size):
+                chunk = extracted_text[i:i+chunk_size]
+                translated_chunks.append(translator.translate(chunk))
+                
+            translated_text = " ".join(translated_chunks)
+
+            return Response({
+                'original_text': extracted_text,
+                'translated_text': translated_text,
+                'message': 'تم استخراج وترجمة النص بنجاح'
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': f'حدث خطأ غير متوقع: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
