@@ -32,22 +32,43 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             from deep_translator import GoogleTranslator
             
             def map_lang(lang):
-                if not lang: return 'auto'
+                """تحويل رموز اللغات المختلفة إلى رموز مدعومة من Google Translator"""
+                if not lang: 
+                    return 'auto'
                 lang_lower = str(lang).strip().lower()
-                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)', 'zh-hans']:
+                
+                # معالجة اللغات الصينية
+                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)', 'zh-hans', 'zh-chs']:
                     return 'zh-CN'
-                if lang_lower in ['zh-tw', 'chinese (traditional)', 'zh-hant']:
+                if lang_lower in ['zh-tw', 'chinese (traditional)', 'zh-hant', 'zh-cht']:
                     return 'zh-TW'
-                if lang_lower.startswith('ar-'):
+                
+                # معالجة اللغات العربية والهجات
+                if lang_lower.startswith('ar-') or lang_lower == 'ar':
                     return 'ar'
-                return str(lang).strip()
+                
+                # معالجة البرتغالية
+                if lang_lower in ['pt-br', 'pt_br', 'portuguese (brazil)']:
+                    return 'pt-BR'
+                if lang_lower in ['pt-pt', 'pt_pt', 'portuguese (portugal)']:
+                    return 'pt'
+                
+                # بقية اللغات - إرجاع الرمز كما هو مع معالجة الشرطات
+                return str(lang).strip().replace('_', '-')
 
+            # تطبيع رموز اللغات
             src_lang = map_lang(source_lang)
             tgt_lang = map_lang(target_lang)
             
-            # Fallback for unexpected cases where it might still be 'zh'
-            if src_lang == 'zh': src_lang = 'zh-CN'
-            if tgt_lang == 'zh': tgt_lang = 'zh-CN'
+            # التحقق النهائي وفالباك في حالة 'zh' أو لغات أخرى لم يتم معالجتها
+            if src_lang == 'zh': 
+                src_lang = 'zh-CN'
+            if tgt_lang == 'zh': 
+                tgt_lang = 'zh-CN'
+            
+            # طباعة تنبيه للتتبع
+            if source_lang != src_lang or target_lang != tgt_lang:
+                print(f"🔄 Language mapping: {source_lang} -> {src_lang}, {target_lang} -> {tgt_lang}")
 
             def perform_translation():
                 try:
