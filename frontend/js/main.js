@@ -470,8 +470,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     connectWS();
 
+    // Language Code Mapping: Convert UI language codes to supported backend codes
+    function normalizeLanguageCode(langCode) {
+        const langCodeMap = {
+            'zh': 'zh-CN',      // Default to Simplified Chinese
+            'zh-TW': 'zh-TW',   // Keep Traditional Chinese as is
+            'zh-CN': 'zh-CN'    // Keep Simplified Chinese as is
+        };
+        return langCodeMap[langCode] || langCode;
+    }
+
     function sendForTranslation(textToTranslate, fromLang, toLang, mode='replace') {
         if(!textToTranslate) return showToast('الرجاء إدخال نص للترجمة', 'error');
+
+        // Normalize language codes before sending
+        fromLang = normalizeLanguageCode(fromLang);
+        toLang = normalizeLanguageCode(toLang);
 
         let isReverse = mode.includes('reverse');
         let targetEl = isReverse ? sourceText : targetText;
@@ -559,7 +573,10 @@ document.addEventListener('DOMContentLoaded', () => {
             recognition.continuous = false;
             // interimResults causes silent failures on many mobile browsers (especially iOS Safari)
             recognition.interimResults = !isMobile;
-            recognition.lang = langCode === 'ar' ? 'ar-SA' : langCode;
+            
+            // Normalize language code for Web Speech API
+            let normalizedLangCode = normalizeLanguageCode(langCode);
+            recognition.lang = normalizedLangCode === 'ar' || normalizedLangCode.startsWith('ar-') ? 'ar-SA' : normalizedLangCode;
             
             let hasSpeech = false;
 
