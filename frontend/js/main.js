@@ -473,11 +473,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // Language Code Mapping: Convert UI language codes to supported backend codes
     function normalizeLanguageCode(langCode) {
         const langCodeMap = {
-            'zh': 'zh-CN',      // Default to Simplified Chinese
-            'zh-TW': 'zh-TW',   // Keep Traditional Chinese as is
-            'zh-CN': 'zh-CN'    // Keep Simplified Chinese as is
+            // Chinese - All Variants
+            'zh': 'zh-CN',
+            'zh-cn': 'zh-CN',
+            'zh-CN': 'zh-CN',
+            'zh-chs': 'zh-CN',
+            'zh-hans': 'zh-CN',
+            'chinese': 'zh-CN',
+            'chinese (simplified)': 'zh-CN',
+            
+            'zh-tw': 'zh-TW',
+            'zh-TW': 'zh-TW',
+            'zh-cht': 'zh-TW',
+            'zh-hant': 'zh-TW',
+            'chinese (traditional)': 'zh-TW',
+            
+            // Portuguese - All Variants
+            'pt-br': 'pt-BR',
+            'pt-BR': 'pt-BR',
+            'pt_br': 'pt-BR',
+            'portuguese (brazil)': 'pt-BR',
+            
+            'pt-pt': 'pt',
+            'pt_pt': 'pt',
+            'portuguese (portugal)': 'pt',
+            'portuguese': 'pt',
+            
+            // Arabic and Dialects - normalized to 'ar'
+            'ar': 'ar',
+            'ar-sa': 'ar',
+            'ar-eg': 'ar',
+            'ar-ae': 'ar',
+            'arabic': 'ar'
         };
-        return langCodeMap[langCode] || langCode;
+        
+        // Handle case-insensitive lookup
+        const normalizedLangCode = langCodeMap[langCode?.toLowerCase()] || langCode;
+        
+        // Log normalization if it changed
+        if (langCode !== normalizedLangCode) {
+            console.log(`🔄 Language code normalized: ${langCode} -> ${normalizedLangCode}`);
+        }
+        
+        return normalizedLangCode;
     }
 
     function sendForTranslation(textToTranslate, fromLang, toLang, mode='replace') {
