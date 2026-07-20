@@ -33,17 +33,21 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             
             def map_lang(lang):
                 if not lang: return 'auto'
-                lang_lower = lang.strip().lower()
-                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)']:
+                lang_lower = str(lang).strip().lower()
+                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)', 'zh-hans']:
                     return 'zh-CN'
-                if lang_lower in ['zh-tw', 'chinese (traditional)']:
+                if lang_lower in ['zh-tw', 'chinese (traditional)', 'zh-hant']:
                     return 'zh-TW'
                 if lang_lower.startswith('ar-'):
                     return 'ar'
-                return lang
+                return str(lang).strip()
 
             src_lang = map_lang(source_lang)
             tgt_lang = map_lang(target_lang)
+            
+            # Fallback for unexpected cases where it might still be 'zh'
+            if src_lang == 'zh': src_lang = 'zh-CN'
+            if tgt_lang == 'zh': tgt_lang = 'zh-CN'
 
             def perform_translation():
                 try:

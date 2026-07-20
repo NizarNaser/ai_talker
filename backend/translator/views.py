@@ -182,17 +182,21 @@ class FileUploadTranslateView(views.APIView):
             
             def map_lang(lang):
                 if not lang: return 'auto'
-                lang_lower = lang.strip().lower()
-                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)']:
+                lang_lower = str(lang).strip().lower()
+                if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)', 'zh-hans']:
                     return 'zh-CN'
-                if lang_lower in ['zh-tw', 'chinese (traditional)']:
+                if lang_lower in ['zh-tw', 'chinese (traditional)', 'zh-hant']:
                     return 'zh-TW'
                 if lang_lower.startswith('ar-'):
                     return 'ar'
-                return lang
+                return str(lang).strip()
 
             safe_source = map_lang(source_lang)
             safe_target = map_lang(target_lang)
+            
+            # Fallback for unexpected cases where it might still be 'zh'
+            if safe_source == 'zh': safe_source = 'zh-CN'
+            if safe_target == 'zh': safe_target = 'zh-CN'
             
             translator = GoogleTranslator(source=safe_source, target=safe_target)
             
