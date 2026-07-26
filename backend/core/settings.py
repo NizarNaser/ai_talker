@@ -140,7 +140,18 @@ SIMPLE_JWT = {
 }
 
 # إعدادات CORS للسماح بالطلبات من الواجهة الأمامية
-CORS_ALLOW_ALL_ORIGINS = True # للإنتاج يفضل تحديد النطاقات المسموحة
+# CORS configuration – allow Vercel frontend
+CORS_ALLOWED_ORIGINS = [
+    "https://ai-talker-five.vercel.app",
+    "https://ai-talker-five.vercel.app/",
+]
+CORS_ALLOW_ALL_ORIGINS = False  # keep explicit list for production
+
+# CSRF trusted origins (needed for POST requests from Vercel)
+CSRF_TRUSTED_ORIGINS = [
+    "https://ai-talker-five.vercel.app",
+]
+
 
 # إعدادات الحماية
 SECURE_BROWSER_XSS_FILTER = True
