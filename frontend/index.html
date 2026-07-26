@@ -2,8 +2,10 @@
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Talker - منصة الترجمة الفورية بالذكاء الاصطناعي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="AI Talker">
+    <title>AI Talker - منصة الترجمة الفورية بالذكاء الاصطناعي | ترجمة صوتية ونصية</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
     <meta name="description" content="AI Talker: منصة ترجمة فورية عالمية تدعم جميع اللغات واللهجات باستخدام الذكاء الاصطناعي. ترجمة صوتية ونصية بدقة عالية.">
     <meta name="keywords" content="ترجمة فورية, ذكاء اصطناعي, ترجمة صوتية, لهجات عربية, AI Translation">
@@ -36,6 +38,7 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
+    <a href="#main-content" class="skip-link sr-only" style="position:absolute; left:-9999px; z-index:999; padding:1em; background-color:#000; color:#fff; text-decoration:none;">تخطي إلى المحتوى الرئيسي</a>
     <!-- Skeleton Loader (Hidden by JS when ready) -->
     <div id="loader" class="loader-overlay">
         <div class="spinner"></div>
@@ -58,13 +61,13 @@
     </div>
 
     <!-- Header -->
-    <header class="glass-header">
+    <header class="glass-header" role="banner">
         <div class="container">
             <div class="logo">
-                <i class="fa-solid fa-microphone-lines"></i>
+                <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
                 <h1>AI Talker</h1>
             </div>
-            <nav>
+            <nav role="navigation" aria-label="القائمة الرئيسية">
                 <ul>
                     <li><a href="#" class="active" data-i18n="nav_home">الرئيسية</a></li>
                     <li><a href="#translator" data-i18n="nav_translator">المترجم</a></li>
@@ -73,7 +76,7 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <select id="ui-lang-select" class="lang-select" style="width: auto; padding: 0.3rem 0.5rem; margin-left: 0.5rem;">
+                <select id="ui-lang-select" class="lang-select" style="width: auto; padding: 0.3rem 0.5rem; margin-left: 0.5rem;" aria-label="اختر لغة الواجهة">
                     <option value="ar">العربية</option>
                     <option value="en">English</option>
                     <option value="fr">Français</option>
@@ -82,8 +85,8 @@
                     <option value="zh">中文</option>
                     <option value="ru">Русский</option>
                 </select>
-                <button id="theme-toggle" class="icon-btn" title="تبديل المظهر"><i class="fa-solid fa-moon"></i></button>
-                <button class="btn-primary" onclick="openLoginModal()"><i class="fa-brands fa-google"></i> <span data-i18n="login">تسجيل الدخول</span></button>
+                <button id="theme-toggle" class="icon-btn" title="تبديل المظهر" aria-label="تبديل المظهر (فاتح/داكن)"><i class="fa-solid fa-moon" aria-hidden="true"></i></button>
+                <button class="btn-primary" onclick="openLoginModal()" aria-label="تسجيل الدخول أو إنشاء حساب"><i class="fa-brands fa-google" aria-hidden="true"></i> <span data-i18n="login">تسجيل الدخول</span></button>
             </div>
         </div>
     </header>
@@ -93,21 +96,24 @@
         <span>مساحة إعلانية (728x90)</span>
     </div>
 
-    <section class="hero">
+    <main id="main-content" role="main">
+
+    <section class="hero" aria-labelledby="hero-title">
         <div class="container">
-            <h2 class="animate-up" data-i18n="hero_title">الترجمة الفورية لم تكن يوماً بهذه السهولة</h2>
+            <h2 id="hero-title" class="animate-up" data-i18n="hero_title">الترجمة الفورية لم تكن يوماً بهذه السهولة</h2>
             <p class="animate-up delay-1" data-i18n="hero_subtitle">تحدث، اكتب، وترجم لأكثر من 100 لغة وما يزيد عن 20 لهجة عربية بدقة الذكاء الاصطناعي.</p>
         </div>
     </section>
 
     <!-- Translator App Section -->
-    <section id="translator" class="translator-section">
+    <section id="translator" class="translator-section" aria-label="قسم المترجم">
         <div class="container">
             <div class="translator-container glass-panel">
                 <!-- Source Language -->
                 <div class="lang-box">
                     <div class="lang-header">
-                        <select id="source-lang" class="lang-select">
+                        <label for="source-lang" class="sr-only" style="display:none;">لغة المصدر</label>
+                        <select id="source-lang" class="lang-select" aria-label="اختر لغة المصدر">
                             <optgroup label="اللغة العربية واللهجات" data-i18n-label="group_arabic">
                                 <option value="ar" data-i18n="lang_ar">العربية (الفصحى)</option>
                                 <option value="ar-eg" data-i18n="lang_ar_eg">العربية (المصرية)</option>
@@ -150,26 +156,28 @@
                             </optgroup>
                         </select>
                     </div>
-                    <textarea id="source-text" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
+                    <label for="source-text" class="sr-only" style="display:none;">النص المراد ترجمته</label>
+                    <textarea id="source-text" aria-label="مربع النص المراد ترجمته" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
                     <div class="controls" style="flex-wrap: wrap; gap: 10px;">
-                        <button class="icon-btn mic-btn" title="تسجيل صوتي"><i class="fa-solid fa-microphone"></i></button>
-                        <input type="file" id="file-upload" accept="image/*,.pdf" style="display: none;">
-                        <label for="file-upload" class="icon-btn" title="تحميل ملف أو صورة" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-file-upload"></i></label>
-                        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;">
-                        <label for="camera-capture" class="icon-btn" title="التقاط صورة بالكاميرا" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-camera"></i></label>
+                        <button class="icon-btn mic-btn" title="تسجيل صوتي" aria-label="بدء التسجيل الصوتي"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>
+                        <input type="file" id="file-upload" accept="image/*,.pdf,.docx" style="display: none;" aria-label="تحميل ملف للترجمة">
+                        <label for="file-upload" class="icon-btn" title="تحميل ملف أو صورة" aria-label="زر تحميل ملف أو صورة" tabindex="0" role="button" onkeypress="if(event.key==='Enter') document.getElementById('file-upload').click();" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-file-upload" aria-hidden="true"></i></label>
+                        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" aria-label="التقاط صورة للترجمة">
+                        <label for="camera-capture" class="icon-btn" title="التقاط صورة بالكاميرا" aria-label="زر التقاط صورة" tabindex="0" role="button" onkeypress="if(event.key==='Enter') document.getElementById('camera-capture').click();" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-camera" aria-hidden="true"></i></label>
                     </div>
                 </div>
 
                 <!-- Middle Controls -->
                 <div class="middle-controls">
-                    <button class="icon-btn swap-btn" title="عكس اللغات"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
-                    <button class="btn-translate" id="translate-btn"><span data-i18n="translate_now">ترجم الآن</span> <i class="fa-solid fa-language"></i></button>
+                    <button class="icon-btn swap-btn" title="عكس اللغات" aria-label="تبديل لغة المصدر والهدف"><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i></button>
+                    <button class="btn-translate" id="translate-btn" aria-label="تنفيذ الترجمة"><span data-i18n="translate_now">ترجم الآن</span> <i class="fa-solid fa-language" aria-hidden="true"></i></button>
                 </div>
 
                 <!-- Target Language -->
                 <div class="lang-box target-box">
                     <div class="lang-header">
-                        <select id="target-lang" class="lang-select">
+                        <label for="target-lang" class="sr-only" style="display:none;">لغة الهدف</label>
+                        <select id="target-lang" class="lang-select" aria-label="اختر لغة الترجمة">
                             <optgroup label="اللغات العالمية" data-i18n-label="group_global">
                                 <option value="en" data-i18n="lang_en">الإنجليزية (English)</option>
                                 <option value="fr" data-i18n="lang_fr">الفرنسية (Français)</option>
@@ -196,19 +204,20 @@
                             </optgroup>
                         </select>
                     </div>
-                    <div class="skeleton-text hidden" id="target-skeleton"></div>
-                    <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا..."></textarea>
-                    <div class="controls" style="flex-wrap: wrap; gap: 10px;">
-                        <button class="icon-btn target-mic-btn" title="رد صوتي من الجهة الأخرى"><i class="fa-solid fa-microphone"></i></button>
-                        <button class="icon-btn tts-btn" title="الاستماع للترجمة"><i class="fa-solid fa-volume-high"></i></button>
-                        <button class="icon-btn copy-btn" title="نسخ النص"><i class="fa-solid fa-copy"></i></button>
-                        <button class="icon-btn fav-btn" title="إضافة للمفضلة"><i class="fa-regular fa-heart"></i></button>
+                    <div class="skeleton-text hidden" id="target-skeleton" aria-hidden="true"></div>
+                    <label for="target-text" class="sr-only" style="display:none;">النص المترجم</label>
+                    <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا..." aria-label="مربع النص المترجم القراءة فقط"></textarea>
+                    <div class="controls" style="flex-wrap: wrap; gap: 10px;" role="group" aria-label="أدوات التحكم بالترجمة">
+                        <button class="icon-btn target-mic-btn" title="رد صوتي من الجهة الأخرى" aria-label="تسجيل صوتي بلغة الهدف"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>
+                        <button class="icon-btn tts-btn" title="الاستماع للترجمة" aria-label="الاستماع إلى النص المترجم"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
+                        <button class="icon-btn copy-btn" title="نسخ النص" aria-label="نسخ الترجمة إلى الحافظة"><i class="fa-solid fa-copy" aria-hidden="true"></i></button>
+                        <button class="icon-btn fav-btn" title="إضافة للمفضلة" aria-label="حفظ الترجمة في المفضلة"><i class="fa-regular fa-heart" aria-hidden="true"></i></button>
                         <div class="download-dropdown" style="position: relative; display: inline-block;">
-                            <button class="icon-btn" title="حفظ الترجمة" onclick="document.getElementById('download-options').classList.toggle('hidden')"><i class="fa-solid fa-download"></i></button>
-                            <div id="download-options" class="hidden" style="position: absolute; top: 100%; right: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px; z-index: 10; display: flex; flex-direction: column; gap: 5px; min-width: 100px;">
-                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('txt')">TXT</button>
-                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('pdf')">PDF</button>
-                                <button class="btn-secondary" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('docx')">DOCX</button>
+                            <button class="icon-btn" title="حفظ الترجمة" aria-haspopup="true" aria-expanded="false" onclick="const opts = document.getElementById('download-options'); opts.classList.toggle('hidden'); this.setAttribute('aria-expanded', !opts.classList.contains('hidden'));"><i class="fa-solid fa-download" aria-hidden="true"></i></button>
+                            <div id="download-options" class="hidden" role="menu" aria-label="خيارات تحميل الملف" style="position: absolute; top: 100%; right: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px; z-index: 10; display: flex; flex-direction: column; gap: 5px; min-width: 100px;">
+                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('txt')">TXT</button>
+                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('pdf')">PDF</button>
+                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('docx')">DOCX</button>
                             </div>
                         </div>
                     </div>
@@ -256,8 +265,10 @@
         </div>
     </section>
 
+    </main>
+
     <!-- Footer -->
-    <footer>
+    <footer role="contentinfo">
         <div class="container footer-content">
             <div class="footer-info">
                 <div class="logo">

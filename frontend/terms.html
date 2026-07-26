@@ -2,10 +2,16 @@
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شروط الاستخدام - AI Talker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="AI Talker">
+    <title>شروط الاستخدام - AI Talker | القواعد والأحكام</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
-    <meta name="description" content="اقرأ شروط الاستخدام والأحكام المتعلقة بمنصة AI Talker للترجمة.">
+    <meta name="description" content="اقرأ شروط الاستخدام والأحكام المتعلقة بمنصة AI Talker للترجمة الفورية، لمعرفة القواعد والضوابط المنظمة للخدمة.">
+    
+    <!-- Open Graph tags for SEO -->
+    <meta property="og:title" content="شروط الاستخدام - AI Talker">
+    <meta property="og:description" content="القواعد والضوابط المنظمة لاستخدام منصة الترجمة الفورية بالذكاء الاصطناعي.">
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -42,16 +48,17 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link sr-only" style="position:absolute; left:-9999px; z-index:999; padding:1em; background-color:#000; color:#fff; text-decoration:none;">تخطي إلى المحتوى الرئيسي</a>
     <!-- Header -->
-    <header class="glass-header">
+    <header class="glass-header" role="banner">
         <div class="container">
             <div class="logo">
-                <a href="index.html" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-microphone-lines"></i>
+                <a href="index.html" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;" aria-label="الصفحة الرئيسية لـ AI Talker">
+                    <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
                     <h1>AI Talker</h1>
                 </a>
             </div>
-            <nav>
+            <nav role="navigation" aria-label="القائمة الرئيسية">
                 <ul>
                     <li><a href="index.html">الرئيسية</a></li>
                     <li><a href="index.html#translator">المترجم</a></li>
@@ -59,7 +66,7 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn" title="تبديل المظهر"><i class="fa-solid fa-moon"></i></button>
+                <button id="theme-toggle" class="icon-btn" title="تبديل المظهر" aria-label="تبديل المظهر (فاتح/داكن)"><i class="fa-solid fa-moon" aria-hidden="true"></i></button>
             </div>
         </div>
     </header>
@@ -69,9 +76,11 @@
         <span>مساحة إعلانية (728x90)</span>
     </div>
 
-    <section class="page-header">
+    <main id="main-content" role="main">
+
+    <section class="page-header" aria-labelledby="page-title">
         <div class="container">
-            <h2 class="animate-up">شروط الاستخدام</h2>
+            <h2 id="page-title" class="animate-up">شروط الاستخدام</h2>
             <p class="animate-up delay-1" style="color: var(--text-muted); margin-top: 15px; max-width: 600px; margin-inline: auto;">
                 القواعد والضوابط المنظمة لاستخدام منصة AI Talker
             </p>
@@ -119,10 +128,13 @@
         <div class="ad-banner ad-responsive my-4">
             <span>مساحة إعلانية (متجاوبة)</span>
         </div>
+        </div>
     </section>
+    
+    </main>
 
     <!-- Footer -->
-    <footer>
+    <footer role="contentinfo">
         <div class="container footer-content">
             <div class="footer-info">
                 <div class="logo">
