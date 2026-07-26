@@ -89,6 +89,8 @@ postgresql://neondb_owner:npg_VJuXLw2B4nZc@ep-polished-sound-aia1vcw7.c-4.us-eas
    - **Language**: `Python 3`
    - **Root Directory**: `backend` (لأن كود الباك اند داخل هذا المجلد).
    - **Build Command**: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
+      - ملاحظة: إذا أضفت `torch`/`torchvision` إلى `requirements.txt` (مطلوبة من `easyocr`) فربما تحتاج لاستخدام مستودع PyTorch الخاص بعجلات CPU أثناء التثبيت على Render. مثال بديل للـ Build Command:
+         `pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu && python manage.py collectstatic --noinput && python manage.py migrate`
    - **Start Command**: `daphne -b 0.0.0.0 -p 8000 core.asgi:application` (ضروري جداً لدعم الـ WebSocket الخاص بالمحادثة).
 6. انزل لأسفل إلى قسم **Environment Variables** (المتغيرات البيئية) وأضف المتغيرات التالية:
    - `DATABASE_URL` = (رابط قاعدة بيانات Neon الذي نسخته في الخطوة الأولى).
@@ -131,3 +133,21 @@ postgresql://neondb_owner:npg_VJuXLw2B4nZc@ep-polished-sound-aia1vcw7.c-4.us-eas
 ## 10. طريقة الصيانة
 - في حالة الصيانة، يمكن تغيير متغير `MAINTENANCE_MODE=True` في Render (إذا كنت أعددته في الكود) لعرض صفحة مؤقتة، أو إيقاف الخدمة مؤقتاً من لوحة التحكم.
 - يمكنك دائماً مراقبة سجلات الأخطاء (Logs) عبر لوحة تحكم Render.
+
+## 11. التحديثات الأخيرة (سجل التطوير)
+تم إضافة مجموعة من التحسينات الجذرية للمشروع لجعله جاهزاً بشكل احترافي للإنتاج:
+1. **ترجمة المستندات مع الحفاظ على التصميم (Layout Preservation)**:
+   - تم دعم ترجمة ملفات Word (`.docx`) و PDF (`.pdf`).
+   - يقوم النظام بقراءة النص، ترجمته، وإعادته بنفس التنسيق الأصلي للمستند (عبر تحويل الـ PDF لـ Word) ليقوم المستخدم بتحميله فوراً.
+   - تم إضافة مكتبات `python-docx` و `pdf2docx` في الباك إند (`requirements.txt`) وتحديث كود `views.py`.
+2. **تهيئات ذوي الاحتياجات الخاصة (Accessibility - a11y)**:
+   - إضافة ميزات التنقل بلوحة المفاتيح لقارئات الشاشة (Screen Readers).
+   - توفير خصائص `aria-label`، `role`، و `tabindex` لجميع العناصر والأزرار والصور.
+   - إضافة زر مخفي "تخطي إلى المحتوى" لتسهيل التصفح للمكفوفين وضعاف البصر في كافة الصفحات.
+3. **تحسينات محركات البحث والذكاء الاصطناعي (SEO & AI Optimization)**:
+   - تجهيز وسوم `Meta` الخاصة بمحركات البحث والوسوم الاجتماعية (`Open Graph`).
+   - إنشاء ملف خريطة الموقع `sitemap.xml` وملف `robots.txt` لتوجيه روبوتات غوغل.
+   - إضافة ملف توثيق `Google Search Console` في مجلد الواجهة الأمامية لإثبات ملكية الموقع وبدء الأرشفة.
+4. **إصلاحات الاستضافة والبيئة (Deployment Fixes)**:
+   - تم تعديل رابط `API_BASE` في الواجهة الأمامية ليناسب خادم Render للإنتاج بدلاً من `localhost`.
+   - إضافة الاعتماديات اللازمة لمعالجة الصور (OCR) كـ `easyocr`، `numpy`، و `opencv-python-headless` في `requirements.txt` لتفادي أخطاء المكتبات المفقودة في بيئة الخوادم.
