@@ -248,67 +248,50 @@ class FileUploadTranslateView(views.APIView):
                 
             elif file_name.endswith(('.png', '.jpg', '.jpeg', '.webp')):
                 try:
-                    import easyocr
-                    import numpy as np
+                    import pytesseract
                     from PIL import Image
                     import io
-                    import gc
 
                     image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
-                    # Free raw bytes immediately
-                    file_bytes = None
-                    gc.collect()
+                    file_bytes = None  # تحرير الذاكرة فوراً
 
-                    # Aggressively resize to max 800px to save memory on low-RAM servers
-                    max_dim = 800
+                    # تصغير الصورة لتوفير الذاكرة على Render
+                    max_dim = 1600
                     w, h = image.size
                     if w > max_dim or h > max_dim:
                         ratio = min(max_dim / w, max_dim / h)
-                        new_w, new_h = int(w * ratio), int(h * ratio)
-                        image = image.resize((new_w, new_h), Image.LANCZOS)
-                        logger.info('🖼️ Resized image from %dx%d to %dx%d', w, h, new_w, new_h)
+                        image = image.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+                        logger.info('🖼️ Resized image from %dx%d to %dx%d', w, h, int(w*ratio), int(h*ratio))
 
-                    img_array = np.array(image)
-                    # Free PIL image
+                    # تحويل رمز اللغة إلى صيغة Tesseract
+                    tesseract_lang_map = {
+                        'ar': 'ara', 'en': 'eng', 'fr': 'fra', 'es': 'spa',
+                        'de': 'deu', 'ru': 'rus', 'zh-CN': 'chi_sim', 'zh-TW': 'chi_tra',
+                        'ja': 'jpn', 'ko': 'kor', 'it': 'ita', 'pt': 'por',
+                        'nl': 'nld', 'sv': 'swe', 'tr': 'tur', 'hi': 'hin',
+                        'auto': 'ara+eng',  # للكشف التلقائي: عربي + إنجليزي
+                    }
+                    tess_lang = tesseract_lang_map.get(safe_source, 'ara+eng')
+
+                    extracted_text = pytesseract.image_to_string(image, lang=tess_lang).strip()
                     del image
-                    gc.collect()
-                    
-                    ocr_langs = ['ar', 'en']
-                    if source_lang in ['zh-CN', 'zh']: ocr_langs = ['ch_sim', 'en']
-                    elif source_lang == 'zh-TW': ocr_langs = ['ch_tra', 'en']
-                    elif source_lang == 'ru': ocr_langs = ['ru', 'en']
-                    elif source_lang == 'ja': ocr_langs = ['ja', 'en']
-                    elif source_lang == 'ko': ocr_langs = ['ko', 'en']
-                    elif source_lang in ['fr', 'es', 'de', 'it', 'pt', 'nl', 'sv', 'tr']:
-                        ocr_langs = ['en']
 
-                    reader = easyocr.Reader(ocr_langs, gpu=False)
-                    result = reader.readtext(img_array, detail=0)
-                    # Free numpy array and reader
-                    del img_array
-                    del reader
-                    gc.collect()
-
-                    extracted_text = " ".join(result).strip()
                     if not extracted_text:
-                        return Response({'error': 'لم يتم العثور على نص في الملف/الصورة.'}, status=status.HTTP_400_BAD_REQUEST)
-                        
-                    # Translate chunks
+                        return Response({'error': 'لم يتم العثور على نص في الصورة.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    # ترجمة بالدفعات
                     chunk_size = 4500
                     translated_chunks = []
                     for i in range(0, len(extracted_text), chunk_size):
                         chunk = extracted_text[i:i+chunk_size]
                         res = translator.translate(chunk)
                         if res: translated_chunks.append(res)
-                        
-                    translated_text = " ".join(translated_chunks)
+
+                    translated_text = ' '.join(translated_chunks)
                     check_timeout()
 
-                except MemoryError:
-                    logger.error('MemoryError during OCR processing')
-                    return Response({'error': 'الذاكرة غير كافية لمعالجة هذه الصورة. يرجى رفع صورة أصغر.'}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
                 except ImportError:
-                    return Response({'error': 'مكتبات التعرف على الصور غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response({'error': 'مكتبة pytesseract غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 except Exception as e:
                     logger.error('OCR error: %s', str(e))
                     return Response({'error': f'خطأ في معالجة الصورة: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
