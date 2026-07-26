@@ -253,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. API URLs
-    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
-    const WS_URL = 'wss://ai-talker-backend.onrender.com/ws/translate/';
+    const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
+    const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/translate/`;
 
     // 5. Toast Notifications
     window.showToast = function(message, type = 'success') {
