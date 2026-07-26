@@ -303,3 +303,15 @@ class FileUploadTranslateView(views.APIView):
 
         except Exception as e:
             return Response({'error': f'حدث خطأ غير متوقع: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class HealthCheckView(views.APIView):
+    """Simple health check endpoint to verify HTTP server reachability."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            'status': 'ok',
+            'message': 'Backend HTTP server is reachable',
+            'ws_test_path': '/ws/translate/'
+        })
