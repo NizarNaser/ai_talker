@@ -120,8 +120,11 @@ class FileUploadTranslateView(views.APIView):
         source_lang = request.data.get('source_lang', 'auto')
         
         if not file_obj:
-            return Response({'error': 'لم يتم العثور على ملف في الطلب.'}, status=status.HTTP_400_BAD_REQUEST)        # Preliminary checks
-        max_file_size = 8 * 1024 * 1024  # 8 MiB
+            return Response({'error': 'لم يتم العثور على ملف في الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Preliminary checks
+        logger.info('📎 File: %s, Size: %s bytes', file_obj.name, file_obj.size)
+        max_file_size = 5 * 1024 * 1024  # 5 MiB
         if file_obj.size > max_file_size:
             logger.warning('File size %s exceeds limit %s', file_obj.size, max_file_size)
             return Response({'error': 'حجم الملف كبير جداً. أقصى حجم مسموح هو 8 MiB.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -249,9 +252,26 @@ class FileUploadTranslateView(views.APIView):
                     import numpy as np
                     from PIL import Image
                     import io
+                    import gc
 
                     image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
+                    # Free raw bytes immediately
+                    file_bytes = None
+                    gc.collect()
+
+                    # Aggressively resize to max 800px to save memory on low-RAM servers
+                    max_dim = 800
+                    w, h = image.size
+                    if w > max_dim or h > max_dim:
+                        ratio = min(max_dim / w, max_dim / h)
+                        new_w, new_h = int(w * ratio), int(h * ratio)
+                        image = image.resize((new_w, new_h), Image.LANCZOS)
+                        logger.info('🖼️ Resized image from %dx%d to %dx%d', w, h, new_w, new_h)
+
                     img_array = np.array(image)
+                    # Free PIL image
+                    del image
+                    gc.collect()
                     
                     ocr_langs = ['ar', 'en']
                     if source_lang in ['zh-CN', 'zh']: ocr_langs = ['ch_sim', 'en']
@@ -262,11 +282,14 @@ class FileUploadTranslateView(views.APIView):
                     elif source_lang in ['fr', 'es', 'de', 'it', 'pt', 'nl', 'sv', 'tr']:
                         ocr_langs = ['en']
 
-                    reader = easyocr.Reader(ocr_langs, gpu=False) 
+                    reader = easyocr.Reader(ocr_langs, gpu=False)
                     result = reader.readtext(img_array, detail=0)
-                    extracted_text = " ".join(result)
-                    
-                    extracted_text = extracted_text.strip()
+                    # Free numpy array and reader
+                    del img_array
+                    del reader
+                    gc.collect()
+
+                    extracted_text = " ".join(result).strip()
                     if not extracted_text:
                         return Response({'error': 'لم يتم العثور على نص في الملف/الصورة.'}, status=status.HTTP_400_BAD_REQUEST)
                         
@@ -281,8 +304,14 @@ class FileUploadTranslateView(views.APIView):
                     translated_text = " ".join(translated_chunks)
                     check_timeout()
 
+                except MemoryError:
+                    logger.error('MemoryError during OCR processing')
+                    return Response({'error': 'الذاكرة غير كافية لمعالجة هذه الصورة. يرجى رفع صورة أصغر.'}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
                 except ImportError:
                     return Response({'error': 'مكتبات التعرف على الصور غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                except Exception as e:
+                    logger.error('OCR error: %s', str(e))
+                    return Response({'error': f'خطأ في معالجة الصورة: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             else:
                 # For unsupported file types: save the file to the configured storage
