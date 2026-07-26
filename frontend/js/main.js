@@ -6,7 +6,7 @@
  */
 // Global backend configuration
 const BACKEND_HOST = window.location.hostname.includes('localhost')
-    ? window.location.host
+    ? 'localhost:8000'
     : 'ai-talker-backend.onrender.com';
 const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/`;
