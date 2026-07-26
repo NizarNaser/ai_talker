@@ -120,14 +120,22 @@ class FileUploadTranslateView(views.APIView):
         source_lang = request.data.get('source_lang', 'auto')
         
         if not file_obj:
-            return Response({'error': 'لم يتم العثور على ملف في الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': 'لم يتم العثور على ملف في الطلب.'}, status=status.HTTP_400_BAD_REQUEST)        # Preliminary checks
+        max_file_size = 8 * 1024 * 1024  # 8 MiB
+        if file_obj.size > max_file_size:
+            logger.warning('File size %s exceeds limit %s', file_obj.size, max_file_size)
+            return Response({'error': 'حجم الملف كبير جداً. أقصى حجم مسموح هو 8 MiB.'}, status=status.HTTP_400_BAD_REQUEST)
+
         extracted_text = ""
         translated_text = ""
         translated_file_base64 = None
         translated_file_format = None
         file_name = file_obj.name.lower()
         file_bytes = file_obj.read()
+        # Track processing time to avoid long hangs
+        import time
+        processing_start = time.time()
+        max_processing_seconds = 30
 
         try:
             # Setup Translator
