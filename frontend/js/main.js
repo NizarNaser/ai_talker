@@ -1046,6 +1046,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('target_lang', targetLang);
 
         try {
+            // Debug: log the upload request URL and FormData keys
+            console.log('⚙️  Upload URL:', `${API_BASE}/upload-translate/`);
+            console.log('🔧  Request method: POST, FormData keys:', [...formData.keys()]);
             const res = await fetch(`${API_BASE}/upload-translate/`, {
                 method: 'POST',
                 body: formData
