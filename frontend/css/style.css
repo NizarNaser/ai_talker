@@ -218,6 +218,8 @@ header .container {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
+    flex-wrap: nowrap;
+    gap: 1rem;
 }
 
 .logo {
@@ -229,6 +231,12 @@ header .container {
     background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.logo h1 {
+    font-size: inherit;
+    margin: 0;
 }
 
 nav ul {
@@ -253,6 +261,45 @@ nav ul {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    flex-shrink: 0;
+}
+
+/* Mobile Adjustments for Header */
+@media (max-width: 767px) {
+    header .container {
+        padding: 0.8rem 0.5rem;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+    }
+    .logo {
+        font-size: 1.1rem;
+        gap: 0.3rem;
+        /* allow logo to shrink on very small screens to avoid overflow */
+        flex-shrink: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .header-actions {
+        gap: 0.3rem;
+    }
+    .header-actions .lang-select {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.4rem !important;
+        margin-left: 0.2rem !important;
+    }
+    .header-actions .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    .header-actions .btn-primary {
+        padding: 0.4rem 0.6rem;
+        border-radius: 50px;
+    }
+    .header-actions .btn-primary span {
+        display: none;
+    }
 }
 
 /* Buttons */
