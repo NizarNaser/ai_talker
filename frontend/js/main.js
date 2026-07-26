@@ -252,9 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // In a full implementation, strings would be replaced here.
     }
 
-    // 4. API URLs
-    const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
-    const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/translate/`;
+    // 4. API URLs (environment‑aware)
+    // Determine the correct backend host. When the frontend runs on Vercel or a custom domain, use the Render backend host.
+    const BACKEND_HOST = window.location.hostname.includes('vercel') || window.location.hostname.includes('localhost')
+        ? window.location.host
+        : 'ai-talker-backend.onrender.com';
+    const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
+    const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/`;
 
     // 5. Toast Notifications
     window.showToast = function(message, type = 'success') {
