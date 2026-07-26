@@ -4,6 +4,12 @@
  * AI Talker - Main JavaScript File
  * Handles UI interactions, API calls, WebSockets, and Speech Recognition.
  */
+// Global backend configuration
+const BACKEND_HOST = window.location.hostname.includes('localhost')
+    ? window.location.host
+    : 'ai-talker-backend.onrender.com';
+const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/`;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Remove Loader
