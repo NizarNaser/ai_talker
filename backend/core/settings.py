@@ -143,14 +143,35 @@ SIMPLE_JWT = {
 # CORS configuration – allow Vercel frontend
 CORS_ALLOWED_ORIGINS = [
     "https://ai-talker-five.vercel.app",
-];
+    "https://ai-talker-backend.onrender.com",
+]
 CORS_ALLOW_ALL_ORIGINS = False  # keep explicit list for production
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # CSRF trusted origins (needed for POST requests from Vercel)
 CSRF_TRUSTED_ORIGINS = [
     "https://ai-talker-five.vercel.app",
+    "https://ai-talker-backend.onrender.com",
 ]
 
+
+# إعدادات Django Channels / WebSocket
+# InMemoryChannelLayer مناسب لـ Render (بدون Redis) ومستقر للاستخدام الفردي
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 # إعدادات الحماية
 SECURE_BROWSER_XSS_FILTER = True

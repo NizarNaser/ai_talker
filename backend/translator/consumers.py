@@ -14,15 +14,34 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             'status': 'connected',
             'message': 'تم الاتصال بخادم الترجمة الفورية بنجاح.'
         }))
+        # بدء إرسال ping دوري لإبقاء الاتصال حياً على Render
+        self._keepalive_task = asyncio.ensure_future(self._keepalive())
+
+    async def _keepalive(self):
+        """إرسال ping كل 25 ثانية لتفادي قطع الاتصال من Render (timeout=55s)"""
+        try:
+            while True:
+                await asyncio.sleep(25)
+                await self.send(text_data=json.dumps({'type': 'ping'}))
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            pass
 
     async def disconnect(self, close_code):
         """عند انقطاع الاتصال"""
-        pass
+        if hasattr(self, '_keepalive_task'):
+            self._keepalive_task.cancel()
 
     async def receive(self, text_data):
         """استقبال البيانات من العميل (النص أو إشارات الصوت)"""
         try:
             data = json.loads(text_data)
+            
+            # تجاهل رسائل pong من العميل
+            if data.get('type') == 'pong':
+                return
+
             source_lang = data.get('source_lang', 'ar')
             target_lang = data.get('target_lang', 'en')
             text = data.get('text', '')

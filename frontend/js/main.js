@@ -378,15 +378,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetLang = document.getElementById('target-lang');
     const swapBtn = document.querySelector('.swap-btn');
 
+    // WebSocket state
+    let wsReconnectDelay = 2000; // يبدأ بـ 2 ثانية ويزداد تدريجياً
+    let wsReconnectTimer = null;
+    let wsPingTimer = null;
+
+    function stopWsPing() {
+        if (wsPingTimer) { clearInterval(wsPingTimer); wsPingTimer = null; }
+    }
+
+    function startWsPing() {
+        stopWsPing();
+        // إرسال ping كل 20 ثانية لإبقاء الاتصال حياً على Render
+        wsPingTimer = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'pong' }));
+            }
+        }, 20000);
+    }
+
     function connectWS() {
+        if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
         ws = new WebSocket(WS_URL);
         ws.onopen = () => {
             console.log('WebSocket Connected');
+            wsReconnectDelay = 2000; // إعادة ضبط التأخير بعد الاتصال الناجح
+            startWsPing();
         };
         ws.onmessage = (e) => {
             console.log("WebSocket Message Received:", e.data);
             try {
                 const data = JSON.parse(e.data);
+                // تجاهل رسائل ping/connected من السيرفر
+                if (data.type === 'ping' || data.status === 'connected') return;
                 if(data.status === 'success') {
                     let isReverse = data.mode.includes('reverse');
                     let targetEl = isReverse ? sourceText : targetText;
@@ -405,7 +429,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         targetEl.value = data.translated;
                     }
                     
-                    // نطق النص الجديد
                     // Restore button spinner
                     const translateBtn = document.getElementById('translate-btn');
                     if (translateBtn) {
@@ -476,8 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
             targetText.classList.remove('hidden');
         };
         ws.onclose = () => {
-            console.log('WebSocket Disconnected. Reconnecting in 3s...');
-            setTimeout(connectWS, 3000);
+            console.log(`WebSocket Disconnected. Reconnecting in ${wsReconnectDelay}ms...`);
+            stopWsPing();
+            // إعادة الاتصال مع زيادة تدريجية في وقت الانتظار (max 30s)
+            wsReconnectTimer = setTimeout(() => {
+                wsReconnectDelay = Math.min(wsReconnectDelay * 1.5, 30000);
+                connectWS();
+            }, wsReconnectDelay);
         };
     }
     connectWS();
@@ -1033,6 +1061,48 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- File Upload & Translation Logic ---
+
+    // Compress image files before uploading to prevent server OOM
+    function compressImageFile(file, maxDim = 800, quality = 0.6) {
+        return new Promise((resolve) => {
+            // Only compress image files
+            if (!file.type.startsWith('image/')) {
+                resolve(file);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        const ratio = Math.min(maxDim / w, maxDim / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+                            console.log(`🗜️ Compressed image: ${(file.size/1024).toFixed(0)}KB → ${(compressed.size/1024).toFixed(0)}KB (${w}x${h})`);
+                            resolve(compressed);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(file);
+            reader.readAsDataURL(file);
+        });
+    }
+
     async function handleFileUpload(file) {
         if (!file) return;
 
@@ -1047,20 +1117,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // إظهار اللودر
         const fileLoader = document.getElementById('file-translation-loader');
         if (fileLoader) fileLoader.classList.remove('hidden');
-        
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('source_lang', sourceLang);
-        formData.append('target_lang', targetLang);
 
         try {
+            // Compress images before uploading (critical for mobile camera photos)
+            const processedFile = await compressImageFile(file, 800, 0.6);
+
+            const formData = new FormData();
+            formData.append('file', processedFile);
+            formData.append('source_lang', sourceLang);
+            formData.append('target_lang', targetLang);
+
             // Debug: log the upload request URL and FormData keys
             console.log('⚙️  Upload URL:', `${API_BASE}/upload-translate/`);
             console.log('🔧  Request method: POST, FormData keys:', [...formData.keys()]);
+            console.log('📦  File size:', (processedFile.size / 1024).toFixed(0), 'KB');
+
+            // Use AbortController with 90s timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 90000);
+
             const res = await fetch(`${API_BASE}/upload-translate/`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (res.ok) {
                 const data = await res.json();
@@ -1079,12 +1160,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.showToast(isAr ? 'تم استخراج وترجمة النص بنجاح!' : 'File text extracted and translated successfully!', 'success');
                 }
             } else {
-                const errData = await res.json();
-                window.showToast(errData.error || (isAr ? 'حدث خطأ أثناء الترجمة' : 'Error during translation'), 'error');
+                let errMsg = isAr ? 'حدث خطأ أثناء الترجمة' : 'Error during translation';
+                try {
+                    const errData = await res.json();
+                    errMsg = errData.error || errMsg;
+                } catch(_) {}
+                window.showToast(errMsg, 'error');
             }
         } catch (err) {
             console.error("Upload error:", err);
-            window.showToast(isAr ? 'فشل الاتصال بالخادم.' : 'Failed to connect to the server.', 'error');
+            if (err.name === 'AbortError') {
+                window.showToast(isAr ? 'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى بملف أصغر.' : 'Connection timed out. Please try again with a smaller file.', 'error');
+            } else {
+                window.showToast(isAr ? 'فشل الاتصال بالخادم.' : 'Failed to connect to the server.', 'error');
+            }
         } finally {
             // إخفاء اللودر عند الانتهاء (سواء بنجاح أو بخطأ)
             if (fileLoader) fileLoader.classList.add('hidden');
