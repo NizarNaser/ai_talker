@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import User, Translation, SiteLike, Comment
 from .serializers import TranslationSerializer, CommentSerializer
+import logging
 
 class TranslationViewSet(viewsets.ModelViewSet):
     """واجهة لإدارة الترجمات الخاصة بالمستخدم"""
@@ -111,6 +112,7 @@ class FileUploadTranslateView(views.APIView):
     """واجهة لرفع ملف أو صورة، استخراج النص، وترجمته مع الحفاظ على التنسيق للمستندات"""
     permission_classes = [AllowAny]
 
+    def post(self, request):
         logger = logging.getLogger(__name__)
         logger.info('📥 Received file upload request from %s', request.META.get('REMOTE_ADDR'))
         file_obj = request.FILES.get('file')
