@@ -5,11 +5,11 @@
  * Handles UI interactions, API calls, WebSockets, and Speech Recognition.
  */
 // Global backend configuration
-const BACKEND_HOST = window.location.hostname.includes('localhost')
-    ? 'localhost:8000'
-    : 'ai-talker-backend.onrender.com';
-const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/`;
+const IS_LOCAL = window.location.hostname.includes('localhost');
+const BACKEND_HOST = IS_LOCAL ? 'localhost:8000' : 'ai-talker-backend.onrender.com';
+// Use HTTPS for production, HTTP for local dev
+const API_BASE = IS_LOCAL ? `${window.location.protocol}//${BACKEND_HOST}/api` : `https://${BACKEND_HOST}/api`;
+const WS_URL = IS_LOCAL ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/` : `wss://${BACKEND_HOST}/ws/translate/`;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Remove Loader

@@ -111,7 +111,8 @@ class FileUploadTranslateView(views.APIView):
     """واجهة لرفع ملف أو صورة، استخراج النص، وترجمته مع الحفاظ على التنسيق للمستندات"""
     permission_classes = [AllowAny]
 
-    def post(self, request):
+        logger = logging.getLogger(__name__)
+        logger.info('📥 Received file upload request from %s', request.META.get('REMOTE_ADDR'))
         file_obj = request.FILES.get('file')
         target_lang = request.data.get('target_lang', 'ar')
         source_lang = request.data.get('source_lang', 'auto')
