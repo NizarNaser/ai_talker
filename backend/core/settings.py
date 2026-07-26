@@ -143,8 +143,7 @@ SIMPLE_JWT = {
 # CORS configuration – allow Vercel frontend
 CORS_ALLOWED_ORIGINS = [
     "https://ai-talker-five.vercel.app",
-    "https://ai-talker-five.vercel.app/",
-]
+];
 CORS_ALLOW_ALL_ORIGINS = False  # keep explicit list for production
 
 # CSRF trusted origins (needed for POST requests from Vercel)
