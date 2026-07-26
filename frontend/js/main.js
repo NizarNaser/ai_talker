@@ -253,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. API URLs (environment‑aware)
-    // Determine the correct backend host. When the frontend runs on Vercel or a custom domain, use the Render backend host.
-    const BACKEND_HOST = window.location.hostname.includes('vercel') || window.location.hostname.includes('localhost')
+    // Determine the correct backend host. When running locally, use the current host; otherwise use the Render backend host.
+    const BACKEND_HOST = window.location.hostname.includes('localhost')
         ? window.location.host
         : 'ai-talker-backend.onrender.com';
     const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
@@ -797,8 +797,8 @@ function renderComments() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 4. API URLs
-    const API_BASE = 'https://ai-talker-backend.onrender.com/api';
+    // 4. API URLs (reused from above)
+    // const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
 
     // Render comments
     renderComments();
