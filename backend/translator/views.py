@@ -137,6 +137,11 @@ class FileUploadTranslateView(views.APIView):
         processing_start = time.time()
         max_processing_seconds = 30
 
+        def check_timeout():
+            if time.time() - processing_start > max_processing_seconds:
+                raise TimeoutError(f'Processing time exceeded {max_processing_seconds} seconds')
+
+
         try:
             # Setup Translator
             from deep_translator import GoogleTranslator
@@ -204,6 +209,7 @@ class FileUploadTranslateView(views.APIView):
                 try:
                     extracted_text, translated_text, translated_file_base64 = process_docx(file_bytes)
                     translated_file_format = 'docx'
+                    check_timeout()
                 except Exception as e:
                     return Response({'error': f'حدث خطأ أثناء معالجة ملف Word: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -228,6 +234,7 @@ class FileUploadTranslateView(views.APIView):
                             
                         extracted_text, translated_text, translated_file_base64 = process_docx(docx_bytes)
                         translated_file_format = 'docx' # Returns a docx
+                        check_timeout()
                     finally:
                         if os.path.exists(pdf_path): os.remove(pdf_path)
                         if os.path.exists(docx_path): os.remove(docx_path)
@@ -272,6 +279,7 @@ class FileUploadTranslateView(views.APIView):
                         if res: translated_chunks.append(res)
                         
                     translated_text = " ".join(translated_chunks)
+                    check_timeout()
 
                 except ImportError:
                     return Response({'error': 'مكتبات التعرف على الصور غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -312,6 +320,9 @@ class FileUploadTranslateView(views.APIView):
                 'message': 'تم استخراج وترجمة النص بنجاح'
             }, status=status.HTTP_200_OK)
 
+        except TimeoutError as te:
+            logger.warning('Processing timeout: %s', str(te))
+            return Response({'error': 'انتهت مهلة معالجة الملف. يرجى رفع ملف أصغر أو تجربة مرة أخرى.'}, status=status.HTTP_504_GATEWAY_TIMEOUT)
         except Exception as e:
             return Response({'error': f'حدث خطأ غير متوقع: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
