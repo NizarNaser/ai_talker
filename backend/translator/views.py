@@ -266,7 +266,32 @@ class FileUploadTranslateView(views.APIView):
                     return Response({'error': 'مكتبات التعرف على الصور غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             else:
-                return Response({'error': 'نوع الملف غير مدعوم.'}, status=status.HTTP_400_BAD_REQUEST)
+                # For unsupported file types: save the file to the configured storage
+                # (Cloudinary or local MEDIA storage) and return a download URL so the
+                # frontend can still upload arbitrary files even if we don't process them.
+                try:
+                    from django.core.files.base import ContentFile
+                    from django.core.files.storage import default_storage
+                    import os
+                    import uuid
+
+                    uploads_dir = 'uploads'
+                    base_name = file_obj.name
+                    save_path = os.path.join(uploads_dir, base_name)
+                    # ensure unique path
+                    if default_storage.exists(save_path):
+                        name, ext = os.path.splitext(base_name)
+                        save_path = os.path.join(uploads_dir, f"{name}_{uuid.uuid4().hex}{ext}")
+
+                    default_storage.save(save_path, ContentFile(file_bytes))
+                    file_url = default_storage.url(save_path)
+
+                    return Response({
+                        'message': 'تم رفع الملف بنجاح (نوع غير مدعوم للمعالجة).',
+                        'file_url': file_url,
+                    }, status=status.HTTP_200_OK)
+                except Exception as e:
+                    return Response({'error': f'فشل رفع الملف: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response({
                 'original_text': extracted_text,
