@@ -1051,7 +1051,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 document.getElementById('source-text').value = data.original_text;
                 document.getElementById('target-text').value = data.translated_text;
-                window.showToast(isAr ? 'تم استخراج وترجمة النص بنجاح!' : 'File text extracted and translated successfully!', 'success');
+                
+                if (data.translated_file_base64 && data.translated_file_format) {
+                    const link = document.createElement('a');
+                    link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${data.translated_file_base64}`;
+                    link.download = `translated_document.${data.translated_file_format}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.showToast(isAr ? 'تم استخراج وترجمة النص وتحميل الملف بتنسيقه الأصلي!' : 'File translated and downloaded with original layout!', 'success');
+                } else {
+                    window.showToast(isAr ? 'تم استخراج وترجمة النص بنجاح!' : 'File text extracted and translated successfully!', 'success');
+                }
             } else {
                 const errData = await res.json();
                 window.showToast(errData.error || (isAr ? 'حدث خطأ أثناء الترجمة' : 'Error during translation'), 'error');
