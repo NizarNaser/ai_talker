@@ -251,6 +251,25 @@ class FileUploadTranslateView(views.APIView):
                     import pytesseract
                     from PIL import Image
                     import io
+                    import shutil as _shutil
+
+                    # تحديد مسار tesseract تلقائياً (Render يثبته في /usr/bin)
+                    _tess_path = _shutil.which('tesseract')
+                    if not _tess_path:
+                        import os as _os
+                        for _candidate in ['/usr/bin/tesseract', '/usr/local/bin/tesseract']:
+                            if _os.path.isfile(_candidate):
+                                _tess_path = _candidate
+                                break
+                    if _tess_path:
+                        pytesseract.pytesseract.tesseract_cmd = _tess_path
+                        logger.info('✅ Tesseract found at: %s', _tess_path)
+                    else:
+                        logger.error('❌ Tesseract binary not found')
+                        return Response(
+                            {'error': 'محرك التعرف على النصوص (Tesseract) غير مثبت على الخادم.'},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE
+                        )
 
                     image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
                     file_bytes = None  # تحرير الذاكرة فوراً
@@ -269,7 +288,7 @@ class FileUploadTranslateView(views.APIView):
                         'de': 'deu', 'ru': 'rus', 'zh-CN': 'chi_sim', 'zh-TW': 'chi_tra',
                         'ja': 'jpn', 'ko': 'kor', 'it': 'ita', 'pt': 'por',
                         'nl': 'nld', 'sv': 'swe', 'tr': 'tur', 'hi': 'hin',
-                        'auto': 'ara+eng',  # للكشف التلقائي: عربي + إنجليزي
+                        'auto': 'ara+eng',
                     }
                     tess_lang = tesseract_lang_map.get(safe_source, 'ara+eng')
 
@@ -277,7 +296,7 @@ class FileUploadTranslateView(views.APIView):
                     del image
 
                     if not extracted_text:
-                        return Response({'error': 'لم يتم العثور على نص في الصورة.'}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({'error': 'لم يتم العثور على نص في الصورة. تأكد أن الصورة واضحة وتحتوي على نص مقروء.'}, status=status.HTTP_400_BAD_REQUEST)
 
                     # ترجمة بالدفعات
                     chunk_size = 4500

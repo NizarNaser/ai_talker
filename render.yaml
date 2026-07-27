@@ -2,25 +2,9 @@ services:
   - type: web
     name: ai-talker-backend
     runtime: python
-    buildCommand: pip install -r backend/requirements.txt
+    buildCommand: bash build.sh
     startCommand: cd backend && daphne -b 0.0.0.0 -p $PORT core.asgi:application
     rootDir: .
-    # Install system-level Tesseract OCR engine (much lighter than EasyOCR/PyTorch)
-    # Supports Arabic, English, French, Spanish, German, Chinese, etc.
-    packages:
-      - tesseract-ocr
-      - tesseract-ocr-ara
-      - tesseract-ocr-eng
-      - tesseract-ocr-fra
-      - tesseract-ocr-spa
-      - tesseract-ocr-deu
-      - tesseract-ocr-chi-sim
-      - tesseract-ocr-chi-tra
-      - tesseract-ocr-rus
-      - tesseract-ocr-jpn
-      - tesseract-ocr-kor
-      - libsm6
-      - libxext6
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
