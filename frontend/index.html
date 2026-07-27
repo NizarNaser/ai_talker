@@ -48,21 +48,6 @@
         <div class="spinner"></div>
     </div>
 
-    <!-- File Translation Loader Overlay -->
-    <div id="file-translation-loader" class="file-loader-overlay hidden">
-        <div class="file-loader-content glass-panel">
-            <div class="file-spinner">
-                <div class="animated-files">
-                    <i class="fa-solid fa-file-lines doc-icon"></i>
-                    <i class="fa-solid fa-wand-magic-sparkles magic-icon"></i>
-                    <i class="fa-solid fa-language lang-icon"></i>
-                </div>
-            </div>
-            <h4 data-i18n="translating_file" style="margin: 0; font-size: 1.3rem;">جاري معالجة وترجمة الملف...</h4>
-            <p data-i18n="please_wait" style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">يرجى الانتظار، قد تستغرق العملية بضع ثوانٍ</p>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-        </div>
-    </div>
 
     <!-- Header -->
     <header class="glass-header" role="banner">
@@ -162,12 +147,7 @@
                     </div>
                     <label for="source-text" class="sr-only" style="display:none;">النص المراد ترجمته</label>
                     <textarea id="source-text" aria-label="مربع النص المراد ترجمته" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
-                    <div class="controls" style="flex-wrap: wrap; gap: 10px;">
                         <button class="icon-btn mic-btn" title="تسجيل صوتي" aria-label="بدء التسجيل الصوتي"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>
-                        <input type="file" id="file-upload" accept="image/*,.pdf,.docx" style="display: none;" aria-label="تحميل ملف للترجمة">
-                        <label for="file-upload" class="icon-btn" title="تحميل ملف أو صورة" aria-label="زر تحميل ملف أو صورة" tabindex="0" role="button" onkeypress="if(event.key==='Enter') document.getElementById('file-upload').click();" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-file-upload" aria-hidden="true"></i></label>
-                        <input type="file" id="camera-capture" accept="image/*" capture="environment" style="display: none;" aria-label="التقاط صورة للترجمة">
-                        <label for="camera-capture" class="icon-btn" title="التقاط صورة بالكاميرا" aria-label="زر التقاط صورة" tabindex="0" role="button" onkeypress="if(event.key==='Enter') document.getElementById('camera-capture').click();" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-camera" aria-hidden="true"></i></label>
                     </div>
                 </div>
 
@@ -216,14 +196,6 @@
                         <button class="icon-btn tts-btn" title="الاستماع للترجمة" aria-label="الاستماع إلى النص المترجم"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                         <button class="icon-btn copy-btn" title="نسخ النص" aria-label="نسخ الترجمة إلى الحافظة"><i class="fa-solid fa-copy" aria-hidden="true"></i></button>
                         <button class="icon-btn fav-btn" title="إضافة للمفضلة" aria-label="حفظ الترجمة في المفضلة"><i class="fa-regular fa-heart" aria-hidden="true"></i></button>
-                        <div class="download-dropdown" style="position: relative; display: inline-block;">
-                            <button class="icon-btn" title="حفظ الترجمة" aria-haspopup="true" aria-expanded="false" onclick="const opts = document.getElementById('download-options'); opts.classList.toggle('hidden'); this.setAttribute('aria-expanded', !opts.classList.contains('hidden'));"><i class="fa-solid fa-download" aria-hidden="true"></i></button>
-                            <div id="download-options" class="hidden" role="menu" aria-label="خيارات تحميل الملف" style="position: absolute; top: 100%; right: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; padding: 5px; z-index: 10; display: flex; flex-direction: column; gap: 5px; min-width: 100px;">
-                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('txt')">TXT</button>
-                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('pdf')">PDF</button>
-                                <button class="btn-secondary" role="menuitem" style="padding: 5px; font-size: 0.8rem;" onclick="downloadTranslation('docx')">DOCX</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

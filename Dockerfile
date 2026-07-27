@@ -10,28 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# تثبيت Tesseract OCR وحزم اللغات المطلوبة
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        tesseract-ocr \
-        tesseract-ocr-ara \
-        tesseract-ocr-eng \
-        tesseract-ocr-fra \
-        tesseract-ocr-spa \
-        tesseract-ocr-deu \
-        tesseract-ocr-chi-sim \
-        tesseract-ocr-chi-tra \
-        tesseract-ocr-rus \
-        tesseract-ocr-jpn \
-        tesseract-ocr-kor \
-        libsm6 \
-        libxext6 \
-        libgomp1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
-# التحقق من تثبيت tesseract
-RUN tesseract --version
 
 # تحديد مجلد العمل
 WORKDIR /app
