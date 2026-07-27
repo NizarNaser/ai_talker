@@ -3,7 +3,7 @@
 # يثبّت Tesseract OCR على مستوى النظام ثم يشغّل Django/Daphne
 # ===================================================================
 
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # منع التفاعل أثناء تثبيت الحزم
 ENV DEBIAN_FRONTEND=noninteractive
