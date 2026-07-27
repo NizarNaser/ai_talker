@@ -138,7 +138,7 @@ class FileUploadTranslateView(views.APIView):
         # Track processing time to avoid long hangs
         import time
         processing_start = time.time()
-        max_processing_seconds = 30
+        max_processing_seconds = 120  # تمت الزيادة إلى 120 ثانية لأن الـ OCR والترجمة قد يستغرقان وقتاً على الخوادم المجانية
 
         def check_timeout():
             if time.time() - processing_start > max_processing_seconds:
