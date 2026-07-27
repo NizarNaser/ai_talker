@@ -43,5 +43,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # نسخ ملفات التطبيق
 COPY backend/ .
 
-# تشغيل Daphne على المنفذ الذي يحدده Render
-CMD daphne -b 0.0.0.0 -p $PORT core.asgi:application
+# تشغيل Daphne وتطبيق عمليات قاعدة البيانات والملفات الثابتة
+CMD bash -c "python manage.py collectstatic --noinput && python manage.py migrate && daphne -b 0.0.0.0 -p $PORT core.asgi:application"

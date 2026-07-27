@@ -1,12 +1,27 @@
+version: "1"
 services:
   - type: web
     name: ai-talker-backend
-    runtime: python
-    buildCommand: bash build.sh
-    startCommand: cd backend && daphne -b 0.0.0.0 -p $PORT core.asgi:application
+    runtime: docker
+    repo: https://github.com/NizarNaser/ai_talker
+    plan: free
+    region: oregon
     rootDir: .
+    autoDeployTrigger: commit
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
       - key: PYTHONPATH
-        value: backend
+        value: .
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: DEBUG
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
