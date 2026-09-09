@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "تسجيل الدخول",
             hero_title: "الترجمة الفورية لم تكن يوماً بهذه السهولة",
             hero_subtitle: "تحدث، اكتب، وترجم لأكثر من 100 لغة وما يزيد عن 20 لهجة عربية بدقة الذكاء الاصطناعي.",
+            download_android_app: "حمّل تطبيق أندرويد مجاناً",
             source_placeholder: "اكتب النص هنا أو اضغط على الميكروفون للتحدث...",
             target_placeholder: "ستظهر الترجمة هنا...",
             translate_now: "ترجم الآن",
@@ -122,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "Login",
             hero_title: "Instant Translation Has Never Been Easier",
             hero_subtitle: "Speak, type, and translate over 100 languages and 20+ dialects with AI precision.",
+            download_android_app: "Download Android App Free",
             source_placeholder: "Type text here or click the mic to speak...",
             target_placeholder: "Translation will appear here...",
             translate_now: "Translate Now",
@@ -167,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "Connexion",
             hero_title: "La traduction instantanée n'a jamais été aussi simple",
             hero_subtitle: "Parlez, tapez et traduisez dans plus de 100 langues avec la précision de l'IA.",
+            download_android_app: "Télécharger l'app Android gratuitement",
             source_placeholder: "Tapez le texte ici ou cliquez sur le micro...",
             target_placeholder: "La traduction apparaîtra ici...",
             translate_now: "Traduire",
@@ -212,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "Iniciar sesión",
             hero_title: "La traducción instantánea nunca ha sido tan fácil",
             hero_subtitle: "Hable, escriba y traduzca a más de 100 idiomas con la precisión de la IA.",
+            download_android_app: "Descargar app de Android gratis",
             source_placeholder: "Escriba el texto aquí o haga clic en el micrófono...",
             target_placeholder: "La traducción aparecerá aquí...",
             translate_now: "Traducir",
@@ -257,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "Anmelden",
             hero_title: "Sofortige Übersetzung war noch nie so einfach",
             hero_subtitle: "Sprechen, tippen und in über 100 Sprachen übersetzen mit KI-Präzision.",
+            download_android_app: "Android-App kostenlos herunterladen",
             source_placeholder: "Geben Sie hier Text ein oder klicken Sie auf das Mikrofon...",
             target_placeholder: "Übersetzung wird hier angezeigt...",
             translate_now: "Übersetzen",
@@ -302,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "登录",
             hero_title: "即时翻译从未如此简单",
             hero_subtitle: "借助AI精确度，说话、输入并翻译100多种语言。",
+            download_android_app: "免费下载安卓应用",
             source_placeholder: "在此输入文本或点击麦克风说话...",
             target_placeholder: "翻译将显示在此处...",
             translate_now: "立即翻译",
@@ -347,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             login: "Войти",
             hero_title: "Мгновенный перевод никогда не был таким простым",
             hero_subtitle: "Говорите, печатайте и переводите на более чем 100 языков с точностью ИИ.",
+            download_android_app: "Скачать приложение Android бесплатно",
             source_placeholder: "Введите текст здесь или нажмите на микрофон...",
             target_placeholder: "Перевод появится здесь...",
             translate_now: "Перевести",
@@ -814,33 +821,67 @@ document.addEventListener('DOMContentLoaded', () => {
         let activeRecognition = null;
         let activeBtn = null;
 
-        function startListening(btnElement, langCode, onFinalTranscript) {
+        // أجهزة Huawei الحديثة (وبعض أجهزة الأندرويد الأخرى) لا تملك خدمات جوجل
+        // (Google Mobile Services) التي يعتمد عليها التعرف الصوتي عبر Web Speech API
+        // في متصفح Chrome، لذلك نعرض لها تنبيهاً واضحاً بدل الفشل الصامت.
+        const isHuaweiOrNoGMS = /huawei|honor|harmonyos|hmscore/i.test(navigator.userAgent);
+
+        // طلب صلاحية الميكروفون صراحةً عبر getUserMedia أولاً: هذا يجبر المتصفح على
+        // إظهار نافذة طلب الصلاحية بشكل موثوق (بعض متصفحات أندرويد لا تُظهرها بشكل
+        // صحيح إن استدعيت SpeechRecognition.start() مباشرة)، ويميّز بوضوح بين
+        // "المستخدم رفض الصلاحية" و"لم يلتقط صوتاً" بدل رسالة خطأ عامة غير مفيدة.
+        async function ensureMicPermission() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                return true; // لا يمكن التحقق مسبقاً؛ نترك SpeechRecognition يتعامل مع الأمر
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (err) {
+                console.error('getUserMedia permission error:', err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showToast('تم رفض صلاحية الميكروفون. يرجى تفعيلها من إعدادات المتصفح (الموقع → الصلاحيات → الميكروفون) ثم إعادة المحاولة.', 'error');
+                } else if (err.name === 'NotFoundError') {
+                    showToast('لم يتم العثور على ميكروفون متصل بالجهاز.', 'error');
+                } else {
+                    showToast('تعذّر الوصول إلى الميكروفون: ' + err.message, 'error');
+                }
+                return false;
+            }
+        }
+
+        async function startListening(btnElement, langCode, onFinalTranscript) {
             // Stop any existing recognition
             if (activeRecognition) {
                 try { activeRecognition.stop(); } catch(e) {}
                 if (activeBtn) activeBtn.classList.remove('recording');
             }
 
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent) || /wv|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
+            const isOpera = /OPR|Opera/i.test(navigator.userAgent);
+
+            if (isWebView || isOpera) {
+                showToast('الميكروفون لا يعمل على متصفح أوبرا أو متصفحات التطبيقات. يرجى فتح الرابط باستخدام متصفح جوجل كروم (Google Chrome) أو سفاري.', 'error');
+                return;
+            }
+
+            const permissionGranted = await ensureMicPermission();
+            if (!permissionGranted) return;
+
             activeBtn = btnElement;
             const recognition = new SpeechRecognition();
             activeRecognition = recognition;
 
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent) || /wv|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
-            const isOpera = /OPR|Opera/i.test(navigator.userAgent);
-            
-            if (isWebView || isOpera) {
-                showToast('الميكروفون لا يعمل على متصفح أوبرا أو متصفحات التطبيقات. يرجى فتح الرابط باستخدام متصفح جوجل كروم (Google Chrome) أو سفاري.', 'error');
-            }
-
             recognition.continuous = false;
             // interimResults causes silent failures on many mobile browsers (especially iOS Safari)
             recognition.interimResults = !isMobile;
-            
+
             // Normalize language code for Web Speech API
             let normalizedLangCode = normalizeLanguageCode(langCode);
             recognition.lang = normalizedLangCode === 'ar' || normalizedLangCode.startsWith('ar-') ? 'ar-SA' : normalizedLangCode;
-            
+
             let hasSpeech = false;
 
             recognition.onstart = () => {
@@ -867,7 +908,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Mic error:", event.error);
                 let errorMsg = 'حدث خطأ في الميكروفون';
                 if (event.error === 'not-allowed') errorMsg = 'يرجى إعطاء المتصفح صلاحية استخدام الميكروفون.';
-                else if (event.error === 'network') errorMsg = 'حدث خطأ في الشبكة.';
+                else if (event.error === 'network' || event.error === 'service-not-allowed') {
+                    errorMsg = isHuaweiOrNoGMS
+                        ? 'التعرف الصوتي في المتصفح يعتمد على خدمات جوجل غير المتوفرة على هذا الجهاز (أجهزة Huawei الحديثة). يرجى كتابة النص يدوياً بدل استخدام الميكروفون.'
+                        : 'تعذّر الوصول لخدمة التعرف الصوتي (مشكلة في الشبكة أو الخدمة).';
+                }
                 else if (event.error === 'no-speech') errorMsg = 'لم يتم التعرف على أي صوت.';
                 else errorMsg += ': ' + event.error;
                 showToast(errorMsg, 'error');
@@ -882,9 +927,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnElement.classList.remove('recording');
                 activeRecognition = null;
                 activeBtn = null;
-                
+
                 if (!hasSpeech) {
-                    showToast('تم إيقاف الميكروفون لأنه لم يلتقط أي صوت (تأكد من إعدادات الميكروفون).', 'error');
+                    const msg = isHuaweiOrNoGMS
+                        ? 'لم يتم التقاط أي صوت. هذا شائع على أجهزة Huawei لأن التعرف الصوتي في المتصفح يحتاج خدمات جوجل غير المتوفرة عليها؛ جرّب كتابة النص يدوياً.'
+                        : 'تم إيقاف الميكروفون لأنه لم يلتقط أي صوت (تأكد من إعدادات الميكروفون).';
+                    showToast(msg, 'error');
                 }
             };
 
