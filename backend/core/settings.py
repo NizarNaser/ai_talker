@@ -1,7 +1,7 @@
 """
 إعدادات Django لمشروع AI Talker.
 
-يتضمن هذا الملف إعدادات قاعدة البيانات (PostgreSQL)، واجهات برمجة التطبيقات (DRF)،
+يتضمن هذا الملف إعدادات قاعدة البيانات (MySQL)، واجهات برمجة التطبيقات (DRF)،
 المصادقة (JWT & Google OAuth)، والمقابس (Channels / WebSockets).
 """
 
@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # تحميل متغيرات البيئة
 load_dotenv()
@@ -16,13 +17,30 @@ load_dotenv()
 # المسار الأساسي للمشروع
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# المفتاح السري (يجب إخفاؤه في الإنتاج)
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-secret-key-for-dev')
-
 # وضع التطوير
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# المفتاح السري: يُسمح بمفتاح افتراضي غير آمن فقط في وضع التطوير (DEBUG=True)
+# لتسهيل التشغيل المحلي. في الإنتاج (DEBUG=False) يجب ضبط SECRET_KEY صراحةً،
+# وإلا يتوقف تشغيل الخادم بدل العمل بمفتاح معروف للعامة وهو ثغرة أمنية حقيقية.
+if DEBUG:
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-secret-key-for-dev')
+else:
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    if not SECRET_KEY:
+        raise ImproperlyConfigured(
+            'يجب ضبط متغير البيئة SECRET_KEY عند تشغيل الخادم بوضع الإنتاج (DEBUG=False).'
+        )
+
+# النطاقات المسموح بها: وضع مفتوح (*) في التطوير فقط، وقائمة صريحة في الإنتاج
+# لتفادي هجمات Host header injection.
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    _allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()] or [
+        'ai-talker-backend.onrender.com',
+    ]
 
 # التطبيقات المثبتة
 INSTALLED_APPS = [
@@ -79,11 +97,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 ASGI_APPLICATION = 'core.asgi.application'
 
-# إعدادات قاعدة البيانات PostgreSQL
+# إعدادات قاعدة البيانات MySQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME', 'ai_talker_db'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'Ilya2006'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 
@@ -130,6 +155,19 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
+    # تحديد معدّل الطلبات لمنع إساءة الاستخدام (خصوصاً رفع الملفات الذي يستهلك
+    # موارد OCR/الترجمة، ونموذج التواصل الذي قد يُستغل للسبام)
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'upload': '10/hour',
+        'contact': '5/hour',
+        'auth': '20/hour',
+    },
 }
 
 # إعدادات JWT
@@ -179,7 +217,28 @@ X_FRAME_OPTIONS = 'DENY'
 
 # إعدادات نماذج المستخدم المخصصة إذا لزم الأمر
 AUTH_USER_MODEL = 'translator.User'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# إعدادات البريد الإلكتروني (نموذج "تواصل معنا")
+# إذا لم تُضبط EMAIL_HOST_USER/EMAIL_HOST_PASSWORD نستخدم console backend
+# (يطبع الرسائل في السجلات فقط) حتى لا يتعطل التطوير المحلي بدون بيانات SMTP.
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@aitalker.local'
+
+# البريد الذي تصل إليه رسائل نموذج "تواصل معنا" (افتراضياً نفس حساب الإرسال)
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', EMAIL_HOST_USER or DEFAULT_FROM_EMAIL)
+
+# معرف عميل Google المستخدم للتحقق من رمز تسجيل الدخول عبر Google Identity Services
+# (نفس القيمة يجب وضعها في GOOGLE_CLIENT_ID داخل frontend/js/main.js)
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 
 # إعدادات Cloudinary لرفع الملفات
 import os

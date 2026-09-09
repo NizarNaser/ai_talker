@@ -47,8 +47,8 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             text = data.get('text', '')
             mode = data.get('mode', 'replace') # استقبال النمط (استبدال أم إضافة)
 
-            # تم الاستبدال واستخدام deep-translator للقيام بترجمة حقيقية مجانية
-            from deep_translator import GoogleTranslator
+            # يستخدم Google Translate أساساً مع تحول تلقائي إلى MyMemory عند فشله
+            from .translate_utils import ResilientTranslator
             
             def map_lang(lang):
                 """تحويل رموز اللغات المختلفة إلى رموز مدعومة من Google Translator"""
@@ -91,7 +91,7 @@ class TranslationConsumer(AsyncWebsocketConsumer):
 
             def perform_translation():
                 try:
-                    res_text = GoogleTranslator(source=src_lang, target=tgt_lang).translate(text)
+                    res_text = ResilientTranslator(source=src_lang, target=tgt_lang).translate(text)
                     audio_b64 = ""
                     try:
                         from gtts import gTTS

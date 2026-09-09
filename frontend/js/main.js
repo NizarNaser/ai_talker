@@ -40,10 +40,32 @@ document.addEventListener('DOMContentLoaded', () => {
             group_global: "Langues Mondiales",
             lang_ar: "Arabe (Standard)", lang_ar_eg: "Arabe (Égyptien)", lang_ar_sa: "Arabe (Saoudien)", lang_ar_sy: "Arabe (Syrien)", lang_ar_lb: "Arabe (Libanais)", lang_ar_jo: "Arabe (Jordanien)", lang_ar_ps: "Arabe (Palestinien)", lang_ar_iq: "Arabe (Irakien)", lang_ar_ae: "Arabe (Émirati)", lang_ar_kw: "Arabe (Koweïtien)", lang_ar_qa: "Arabe (Qatari)", lang_ar_bh: "Arabe (Bahreïni)", lang_ar_om: "Arabe (Omanais)", lang_ar_ye: "Arabe (Yéménite)", lang_ar_dz: "Arabe (Algérien)", lang_ar_ma: "Arabe (Marocain)", lang_ar_tn: "Arabe (Tunisien)", lang_ar_ly: "Arabe (Libyen)", lang_ar_mr: "Arabe (Mauritanien)",
             lang_en: "Anglais", lang_fr: "Français", lang_es: "Espagnol", lang_de: "Allemand", lang_tr: "Turc", lang_ru: "Russe", lang_zh: "Chinois (Simplifié)", lang_zh_tw: "Chinois (Traditionnel)", lang_ja: "Japonais", lang_ko: "Coréen", lang_hi: "Hindi", lang_it: "Italien", lang_pt: "Portugais", lang_nl: "Néerlandais", lang_sv: "Suédois", lang_fa: "Persan", lang_ur: "Ourdou"
+        },
+        es: {
+            group_arabic: "Árabe y Dialectos",
+            group_global: "Idiomas Globales",
+            lang_ar: "Árabe (Estándar)", lang_ar_eg: "Árabe (Egipcio)", lang_ar_sa: "Árabe (Saudí)", lang_ar_sy: "Árabe (Sirio)", lang_ar_lb: "Árabe (Libanés)", lang_ar_jo: "Árabe (Jordano)", lang_ar_ps: "Árabe (Palestino)", lang_ar_iq: "Árabe (Iraquí)", lang_ar_ae: "Árabe (Emiratí)", lang_ar_kw: "Árabe (Kuwaití)", lang_ar_qa: "Árabe (Catarí)", lang_ar_bh: "Árabe (Bahreiní)", lang_ar_om: "Árabe (Omaní)", lang_ar_ye: "Árabe (Yemení)", lang_ar_dz: "Árabe (Argelino)", lang_ar_ma: "Árabe (Marroquí)", lang_ar_tn: "Árabe (Tunecino)", lang_ar_ly: "Árabe (Libio)", lang_ar_mr: "Árabe (Mauritano)",
+            lang_en: "Inglés", lang_fr: "Francés", lang_es: "Español", lang_de: "Alemán", lang_tr: "Turco", lang_ru: "Ruso", lang_zh: "Chino (Simplificado)", lang_zh_tw: "Chino (Tradicional)", lang_ja: "Japonés", lang_ko: "Coreano", lang_hi: "Hindi", lang_it: "Italiano", lang_pt: "Portugués", lang_nl: "Neerlandés", lang_sv: "Sueco", lang_fa: "Persa", lang_ur: "Urdu"
+        },
+        de: {
+            group_arabic: "Arabisch & Dialekte",
+            group_global: "Weltsprachen",
+            lang_ar: "Arabisch (Standard)", lang_ar_eg: "Arabisch (Ägyptisch)", lang_ar_sa: "Arabisch (Saudi)", lang_ar_sy: "Arabisch (Syrisch)", lang_ar_lb: "Arabisch (Libanesisch)", lang_ar_jo: "Arabisch (Jordanisch)", lang_ar_ps: "Arabisch (Palästinensisch)", lang_ar_iq: "Arabisch (Irakisch)", lang_ar_ae: "Arabisch (Emiratisch)", lang_ar_kw: "Arabisch (Kuwaitisch)", lang_ar_qa: "Arabisch (Katarisch)", lang_ar_bh: "Arabisch (Bahrainisch)", lang_ar_om: "Arabisch (Omanisch)", lang_ar_ye: "Arabisch (Jemenitisch)", lang_ar_dz: "Arabisch (Algerisch)", lang_ar_ma: "Arabisch (Marokkanisch)", lang_ar_tn: "Arabisch (Tunesisch)", lang_ar_ly: "Arabisch (Libysch)", lang_ar_mr: "Arabisch (Mauretanisch)",
+            lang_en: "Englisch", lang_fr: "Französisch", lang_es: "Spanisch", lang_de: "Deutsch", lang_tr: "Türkisch", lang_ru: "Russisch", lang_zh: "Chinesisch (Vereinfacht)", lang_zh_tw: "Chinesisch (Traditionell)", lang_ja: "Japanisch", lang_ko: "Koreanisch", lang_hi: "Hindi", lang_it: "Italienisch", lang_pt: "Portugiesisch", lang_nl: "Niederländisch", lang_sv: "Schwedisch", lang_fa: "Persisch", lang_ur: "Urdu"
+        },
+        zh: {
+            group_arabic: "阿拉伯语及方言",
+            group_global: "国际语言",
+            lang_ar: "阿拉伯语（标准）", lang_ar_eg: "阿拉伯语（埃及）", lang_ar_sa: "阿拉伯语（沙特）", lang_ar_sy: "阿拉伯语（叙利亚）", lang_ar_lb: "阿拉伯语（黎巴嫩）", lang_ar_jo: "阿拉伯语（约旦）", lang_ar_ps: "阿拉伯语（巴勒斯坦）", lang_ar_iq: "阿拉伯语（伊拉克）", lang_ar_ae: "阿拉伯语（阿联酋）", lang_ar_kw: "阿拉伯语（科威特）", lang_ar_qa: "阿拉伯语（卡塔尔）", lang_ar_bh: "阿拉伯语（巴林）", lang_ar_om: "阿拉伯语（阿曼）", lang_ar_ye: "阿拉伯语（也门）", lang_ar_dz: "阿拉伯语（阿尔及利亚）", lang_ar_ma: "阿拉伯语（摩洛哥）", lang_ar_tn: "阿拉伯语（突尼斯）", lang_ar_ly: "阿拉伯语（利比亚）", lang_ar_mr: "阿拉伯语（毛里塔尼亚）",
+            lang_en: "英语", lang_fr: "法语", lang_es: "西班牙语", lang_de: "德语", lang_tr: "土耳其语", lang_ru: "俄语", lang_zh: "中文（简体）", lang_zh_tw: "中文（繁体）", lang_ja: "日语", lang_ko: "韩语", lang_hi: "印地语", lang_it: "意大利语", lang_pt: "葡萄牙语", lang_nl: "荷兰语", lang_sv: "瑞典语", lang_fa: "波斯语", lang_ur: "乌尔都语"
+        },
+        ru: {
+            group_arabic: "Арабский и диалекты",
+            group_global: "Мировые языки",
+            lang_ar: "Арабский (стандартный)", lang_ar_eg: "Арабский (египетский)", lang_ar_sa: "Арабский (саудовский)", lang_ar_sy: "Арабский (сирийский)", lang_ar_lb: "Арабский (ливанский)", lang_ar_jo: "Арабский (иорданский)", lang_ar_ps: "Арабский (палестинский)", lang_ar_iq: "Арабский (иракский)", lang_ar_ae: "Арабский (эмиратский)", lang_ar_kw: "Арабский (кувейтский)", lang_ar_qa: "Арабский (катарский)", lang_ar_bh: "Арабский (бахрейнский)", lang_ar_om: "Арабский (оманский)", lang_ar_ye: "Арабский (йеменский)", lang_ar_dz: "Арабский (алжирский)", lang_ar_ma: "Арабский (марокканский)", lang_ar_tn: "Арабский (тунисский)", lang_ar_ly: "Арабский (ливийский)", lang_ar_mr: "Арабский (мавританский)",
+            lang_en: "Английский", lang_fr: "Французский", lang_es: "Испанский", lang_de: "Немецкий", lang_tr: "Турецкий", lang_ru: "Русский", lang_zh: "Китайский (упрощённый)", lang_zh_tw: "Китайский (традиционный)", lang_ja: "Японский", lang_ko: "Корейский", lang_hi: "Хинди", lang_it: "Итальянский", lang_pt: "Португальский", lang_nl: "Нидерландский", lang_sv: "Шведский", lang_fa: "Персидский", lang_ur: "Урду"
         }
     };
-    // Fallback for other languages to English
-    ['es', 'de', 'zh', 'ru'].forEach(l => langNames[l] = langNames.en);
 
     const translations = {
         ar: {
@@ -72,7 +94,24 @@ document.addEventListener('DOMContentLoaded', () => {
             or: "أو",
             email_placeholder: "البريد الإلكتروني",
             password_placeholder: "كلمة المرور",
-            login_submit: "دخول"
+            login_submit: "دخول",
+            translating_file: "جاري معالجة وترجمة الملف...",
+            please_wait: "يرجى الانتظار، قد تستغرق العملية بضع ثوانٍ",
+            download_image: "تحميل الصورة المترجمة",
+            ad_space_leaderboard: "مساحة إعلانية (728×90)",
+            ad_space_responsive: "مساحة إعلانية (متجاوبة)",
+            ad_space_rectangle: "مساحة إعلانية (336×280)",
+            footer_tagline: "دعم كامل لجميع اللغات واللهجات.",
+            footer_links_title: "روابط هامة",
+            footer_about: "من نحن",
+            footer_faq: "الأسئلة الشائعة",
+            footer_privacy: "سياسة الخصوصية",
+            footer_terms: "شروط الاستخدام",
+            footer_contact_title: "تواصل معنا",
+            footer_email_placeholder: "بريدك الإلكتروني",
+            footer_message_placeholder: "رسالتك",
+            footer_send: "إرسال",
+            footer_copyright: "© 2026 AI Talker. جميع الحقوق محفوظة."
         },
         en: {
             ...langNames.en,
@@ -100,7 +139,24 @@ document.addEventListener('DOMContentLoaded', () => {
             or: "or",
             email_placeholder: "Email Address",
             password_placeholder: "Password",
-            login_submit: "Login"
+            login_submit: "Login",
+            translating_file: "Processing and translating the file...",
+            please_wait: "Please wait, this may take a few seconds",
+            download_image: "Download Translated Image",
+            ad_space_leaderboard: "Ad Space (728×90)",
+            ad_space_responsive: "Ad Space (Responsive)",
+            ad_space_rectangle: "Ad Space (336×280)",
+            footer_tagline: "Full support for all languages and dialects.",
+            footer_links_title: "Quick Links",
+            footer_about: "About Us",
+            footer_faq: "FAQ",
+            footer_privacy: "Privacy Policy",
+            footer_terms: "Terms of Use",
+            footer_contact_title: "Contact Us",
+            footer_email_placeholder: "Your email",
+            footer_message_placeholder: "Your message",
+            footer_send: "Send",
+            footer_copyright: "© 2026 AI Talker. All rights reserved."
         },
         fr: {
             ...langNames.fr,
@@ -128,7 +184,24 @@ document.addEventListener('DOMContentLoaded', () => {
             or: "ou",
             email_placeholder: "Adresse e-mail",
             password_placeholder: "Mot de passe",
-            login_submit: "Connexion"
+            login_submit: "Connexion",
+            translating_file: "Traitement et traduction du fichier...",
+            please_wait: "Veuillez patienter, cela peut prendre quelques secondes",
+            download_image: "Télécharger l'image traduite",
+            ad_space_leaderboard: "Espace publicitaire (728×90)",
+            ad_space_responsive: "Espace publicitaire (Responsive)",
+            ad_space_rectangle: "Espace publicitaire (336×280)",
+            footer_tagline: "Prise en charge complète de toutes les langues et dialectes.",
+            footer_links_title: "Liens Utiles",
+            footer_about: "À Propos",
+            footer_faq: "FAQ",
+            footer_privacy: "Politique de Confidentialité",
+            footer_terms: "Conditions d'Utilisation",
+            footer_contact_title: "Contactez-nous",
+            footer_email_placeholder: "Votre e-mail",
+            footer_message_placeholder: "Votre message",
+            footer_send: "Envoyer",
+            footer_copyright: "© 2026 AI Talker. Tous droits réservés."
         },
         es: {
             ...langNames.es,
@@ -145,7 +218,35 @@ document.addEventListener('DOMContentLoaded', () => {
             live_conversation: "Modo Conversación en Vivo",
             like_site: "Me gusta",
             user_reviews: "Reseñas de Usuarios",
-            add_comment: "Añadir Comentario"
+            add_comment: "Añadir Comentario",
+            comment_title: "Añadir Reseña",
+            comment_subtitle: "Tu opinión nos ayuda a mejorar",
+            comment_placeholder: "Escribe tu reseña aquí...",
+            comment_submit: "Publicar Reseña",
+            login_title: "Iniciar Sesión / Registrarse",
+            login_subtitle: "Guarda tus traducciones favoritas y únete a la comunidad",
+            login_google: "Continuar con Google",
+            or: "o",
+            email_placeholder: "Correo electrónico",
+            password_placeholder: "Contraseña",
+            login_submit: "Iniciar Sesión",
+            translating_file: "Procesando y traduciendo el archivo...",
+            please_wait: "Por favor espere, esto puede tardar unos segundos",
+            download_image: "Descargar imagen traducida",
+            ad_space_leaderboard: "Espacio publicitario (728×90)",
+            ad_space_responsive: "Espacio publicitario (Responsivo)",
+            ad_space_rectangle: "Espacio publicitario (336×280)",
+            footer_tagline: "Soporte completo para todos los idiomas y dialectos.",
+            footer_links_title: "Enlaces Rápidos",
+            footer_about: "Sobre Nosotros",
+            footer_faq: "Preguntas Frecuentes",
+            footer_privacy: "Política de Privacidad",
+            footer_terms: "Términos de Uso",
+            footer_contact_title: "Contáctanos",
+            footer_email_placeholder: "Tu correo electrónico",
+            footer_message_placeholder: "Tu mensaje",
+            footer_send: "Enviar",
+            footer_copyright: "© 2026 AI Talker. Todos los derechos reservados."
         },
         de: {
             ...langNames.de,
@@ -162,7 +263,35 @@ document.addEventListener('DOMContentLoaded', () => {
             live_conversation: "Live-Gesprächsmodus",
             like_site: "Gefällt mir",
             user_reviews: "Nutzerbewertungen",
-            add_comment: "Bewertung abgeben"
+            add_comment: "Bewertung abgeben",
+            comment_title: "Bewertung hinzufügen",
+            comment_subtitle: "Ihr Feedback hilft uns, uns zu verbessern",
+            comment_placeholder: "Schreiben Sie hier Ihre Bewertung...",
+            comment_submit: "Bewertung veröffentlichen",
+            login_title: "Anmelden / Registrieren",
+            login_subtitle: "Speichern Sie Favoriten und werden Sie Teil der Community",
+            login_google: "Mit Google fortfahren",
+            or: "oder",
+            email_placeholder: "E-Mail-Adresse",
+            password_placeholder: "Passwort",
+            login_submit: "Anmelden",
+            translating_file: "Datei wird verarbeitet und übersetzt...",
+            please_wait: "Bitte warten Sie, dies kann einige Sekunden dauern",
+            download_image: "Übersetztes Bild herunterladen",
+            ad_space_leaderboard: "Werbefläche (728×90)",
+            ad_space_responsive: "Werbefläche (Responsiv)",
+            ad_space_rectangle: "Werbefläche (336×280)",
+            footer_tagline: "Volle Unterstützung für alle Sprachen und Dialekte.",
+            footer_links_title: "Wichtige Links",
+            footer_about: "Über Uns",
+            footer_faq: "Häufige Fragen",
+            footer_privacy: "Datenschutzrichtlinie",
+            footer_terms: "Nutzungsbedingungen",
+            footer_contact_title: "Kontaktieren Sie Uns",
+            footer_email_placeholder: "Ihre E-Mail",
+            footer_message_placeholder: "Ihre Nachricht",
+            footer_send: "Senden",
+            footer_copyright: "© 2026 AI Talker. Alle Rechte vorbehalten."
         },
         zh: {
             ...langNames.zh,
@@ -179,7 +308,35 @@ document.addEventListener('DOMContentLoaded', () => {
             live_conversation: "实时对话模式",
             like_site: "点赞",
             user_reviews: "用户评论",
-            add_comment: "添加评论"
+            add_comment: "添加评论",
+            comment_title: "添加评论",
+            comment_subtitle: "您的反馈帮助我们改进",
+            comment_placeholder: "在此写下您的评论...",
+            comment_submit: "发布评论",
+            login_title: "登录 / 注册",
+            login_subtitle: "保存收藏并加入社区",
+            login_google: "使用 Google 继续",
+            or: "或",
+            email_placeholder: "电子邮箱",
+            password_placeholder: "密码",
+            login_submit: "登录",
+            translating_file: "正在处理并翻译文件...",
+            please_wait: "请稍候，可能需要几秒钟",
+            download_image: "下载翻译后的图片",
+            ad_space_leaderboard: "广告位 (728×90)",
+            ad_space_responsive: "广告位（自适应）",
+            ad_space_rectangle: "广告位 (336×280)",
+            footer_tagline: "全面支持所有语言和方言。",
+            footer_links_title: "快速链接",
+            footer_about: "关于我们",
+            footer_faq: "常见问题",
+            footer_privacy: "隐私政策",
+            footer_terms: "使用条款",
+            footer_contact_title: "联系我们",
+            footer_email_placeholder: "您的邮箱",
+            footer_message_placeholder: "您的留言",
+            footer_send: "发送",
+            footer_copyright: "© 2026 AI Talker. 保留所有权利。"
         },
         ru: {
             ...langNames.ru,
@@ -196,7 +353,35 @@ document.addEventListener('DOMContentLoaded', () => {
             live_conversation: "Режим живого общения",
             like_site: "Нравится",
             user_reviews: "Отзывы пользователей",
-            add_comment: "Оставить отзыв"
+            add_comment: "Оставить отзыв",
+            comment_title: "Оставить отзыв",
+            comment_subtitle: "Ваше мнение помогает нам стать лучше",
+            comment_placeholder: "Напишите свой отзыв здесь...",
+            comment_submit: "Опубликовать отзыв",
+            login_title: "Вход / Регистрация",
+            login_subtitle: "Сохраняйте избранное и присоединяйтесь к сообществу",
+            login_google: "Продолжить с Google",
+            or: "или",
+            email_placeholder: "Электронная почта",
+            password_placeholder: "Пароль",
+            login_submit: "Войти",
+            translating_file: "Обработка и перевод файла...",
+            please_wait: "Пожалуйста, подождите, это может занять несколько секунд",
+            download_image: "Скачать переведённое изображение",
+            ad_space_leaderboard: "Рекламное место (728×90)",
+            ad_space_responsive: "Рекламное место (адаптивное)",
+            ad_space_rectangle: "Рекламное место (336×280)",
+            footer_tagline: "Полная поддержка всех языков и диалектов.",
+            footer_links_title: "Полезные ссылки",
+            footer_about: "О нас",
+            footer_faq: "Частые вопросы",
+            footer_privacy: "Политика конфиденциальности",
+            footer_terms: "Условия использования",
+            footer_contact_title: "Связаться с нами",
+            footer_email_placeholder: "Ваш email",
+            footer_message_placeholder: "Ваше сообщение",
+            footer_send: "Отправить",
+            footer_copyright: "© 2026 AI Talker. Все права защищены."
         }
     };
 
@@ -956,29 +1141,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Google Login Logic
-    const googleBtn = document.querySelector('.google-btn');
-    if (googleBtn) {
-        googleBtn.addEventListener('click', async () => {
-            const originalText = googleBtn.innerHTML;
-            googleBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            googleBtn.disabled = true;
-            
-            const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
-            
-            setTimeout(() => {
-                const dummyEmail = "user_" + Math.floor(Math.random()*1000) + "@gmail.com";
-                localStorage.setItem('access_token', 'dummy_google_token_' + Date.now());
-                localStorage.setItem('user_email', dummyEmail);
-                
+    // Google Login Logic (Google Identity Services - تسجيل دخول حقيقي)
+    // ضع هنا Client ID الخاص بمشروعك من Google Cloud Console (نفس القيمة الموضوعة
+    // في متغير البيئة GOOGLE_CLIENT_ID على الباك اند). اتركه فارغاً لتعطيل الميزة مؤقتاً.
+    const GOOGLE_CLIENT_ID = '';
+
+    async function handleGoogleCredentialResponse(response) {
+        const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+        try {
+            const res = await fetch(`${API_BASE}/auth/google/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+                localStorage.setItem('user_email', data.email);
+
                 window.closeLoginModal();
-                updateUIForLoggedInUser(dummyEmail);
-                
-                if(typeof window.showToast === 'function') window.showToast(isAr ? 'تم تسجيل الدخول عبر Google بنجاح!' : 'Logged in with Google successfully!', 'success');
-                
-                googleBtn.innerHTML = originalText;
-                googleBtn.disabled = false;
-            }, 1000);
+                updateUIForLoggedInUser(data.email);
+                if (typeof window.showToast === 'function') window.showToast(isAr ? 'تم تسجيل الدخول عبر Google بنجاح!' : 'Logged in with Google successfully!', 'success');
+            } else {
+                if (typeof window.showToast === 'function') window.showToast(data.error || (isAr ? 'فشل تسجيل الدخول عبر Google.' : 'Google login failed.'), 'error');
+            }
+        } catch (err) {
+            console.error('Google login error:', err);
+            if (typeof window.showToast === 'function') window.showToast(isAr ? 'فشل الاتصال بالخادم.' : 'Failed to connect to the server.', 'error');
+        }
+    }
+    window.handleGoogleCredentialResponse = handleGoogleCredentialResponse;
+
+    const googleBtn = document.querySelector('.google-btn');
+    const googleSigninContainer = document.getElementById('google-signin-container');
+
+    if (GOOGLE_CLIENT_ID && window.google && window.google.accounts && googleSigninContainer) {
+        google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredentialResponse });
+        google.accounts.id.renderButton(googleSigninContainer, { theme: 'outline', size: 'large', width: 280 });
+    } else if (googleBtn) {
+        // لم يُضبط Client ID بعد على هذا الموقع: نعرض الزر القديم برسالة صريحة بدل تسجيل دخول وهمي
+        googleBtn.classList.remove('hidden');
+        googleBtn.addEventListener('click', () => {
+            const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+            if (typeof window.showToast === 'function') window.showToast(isAr ? 'تسجيل الدخول عبر Google غير مُفعّل بعد على هذا الموقع.' : 'Google login is not enabled on this site yet.', 'error');
         });
     }
 
@@ -1060,5 +1266,233 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     };
 
+    // --- File Upload & Translation Logic ---
+
+    // Compress image files before uploading to prevent server OOM
+    function compressImageFile(file, maxDim = 1600, quality = 0.85) {
+        return new Promise((resolve) => {
+            // Only compress image files
+            if (!file.type.startsWith('image/')) {
+                resolve(file);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        const ratio = Math.min(maxDim / w, maxDim / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+                            console.log(`🗜️ Compressed image: ${(file.size/1024).toFixed(0)}KB → ${(compressed.size/1024).toFixed(0)}KB (${w}x${h})`);
+                            resolve(compressed);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(file);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handleFileUpload(file) {
+        if (!file) return;
+
+        // تفريغ النصوص والصورة السابقة بمجرد رفع ملف جديد
+        document.getElementById('source-text').value = '';
+        document.getElementById('target-text').value = '';
+        const imageWrap = document.getElementById('translated-image-wrap');
+        const translatedImageEl = document.getElementById('translated-image');
+        if (imageWrap) imageWrap.classList.add('hidden');
+
+        const sourceLang = document.getElementById('source-lang').value;
+        const targetLang = document.getElementById('target-lang').value;
+        const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+
+        // إظهار اللودر
+        const fileLoader = document.getElementById('file-translation-loader');
+        if (fileLoader) fileLoader.classList.remove('hidden');
+
+        try {
+            // Compress images before uploading (critical for mobile camera photos),
+            // مع الحفاظ على دقة كافية لضبط أماكن النص عند إعادة رسم الترجمة على الصورة
+            const processedFile = await compressImageFile(file, 1600, 0.85);
+
+            const formData = new FormData();
+            formData.append('file', processedFile);
+            formData.append('source_lang', sourceLang);
+            formData.append('target_lang', targetLang);
+
+            // Debug: log the upload request URL and FormData keys
+            console.log('⚙️  Upload URL:', `${API_BASE}/upload-translate/`);
+            console.log('🔧  Request method: POST, FormData keys:', [...formData.keys()]);
+            console.log('📦  File size:', (processedFile.size / 1024).toFixed(0), 'KB');
+
+            // Use AbortController with 130s timeout (يتوافق مع مهلة المعالجة في الخادم) لتفادي التعليق
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 130000);
+
+            const res = await fetch(`${API_BASE}/upload-translate/`, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('source-text').value = data.original_text;
+                document.getElementById('target-text').value = data.translated_text;
+
+                if (data.translated_file_base64 && data.translated_file_format === 'png') {
+                    // صورة مترجمة بنفس الستايل الأصلي: نعرضها بدلاً من تحميلها تلقائياً
+                    if (translatedImageEl && imageWrap) {
+                        translatedImageEl.src = `data:image/png;base64,${data.translated_file_base64}`;
+                        imageWrap.classList.remove('hidden');
+                    }
+                    window.showToast(isAr ? 'تم استخراج وترجمة النص مع الحفاظ على شكل الصورة الأصلي!' : 'Image translated while keeping its original style!', 'success');
+                } else if (data.translated_file_base64 && data.translated_file_format) {
+                    const link = document.createElement('a');
+                    link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${data.translated_file_base64}`;
+                    link.download = `translated_document.${data.translated_file_format}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.showToast(isAr ? 'تم استخراج وترجمة النص وتحميل الملف بتنسيقه الأصلي!' : 'File translated and downloaded with original layout!', 'success');
+                } else {
+                    window.showToast(isAr ? 'تم استخراج وترجمة النص بنجاح!' : 'File text extracted and translated successfully!', 'success');
+                }
+            } else {
+                let errMsg = isAr ? 'حدث خطأ أثناء الترجمة' : 'Error during translation';
+                try {
+                    const errData = await res.json();
+                    errMsg = errData.error || errMsg;
+                } catch(_) {}
+                window.showToast(errMsg, 'error');
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            if (err.name === 'AbortError') {
+                window.showToast(isAr ? 'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى بملف أصغر.' : 'Connection timed out. Please try again with a smaller file.', 'error');
+            } else {
+                window.showToast(isAr ? 'فشل الاتصال بالخادم.' : 'Failed to connect to the server.', 'error');
+            }
+        } finally {
+            // إخفاء اللودر عند الانتهاء (سواء بنجاح أو بخطأ)
+            if (fileLoader) fileLoader.classList.add('hidden');
+        }
+    }
+
+    const fileUploadInput = document.getElementById('file-upload');
+    if (fileUploadInput) {
+        fileUploadInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = ''; // Reset
+            }
+        });
+    }
+
+    // إدخال الكاميرا: capture="environment" في الـ HTML يفتح كاميرا الهاتف الخلفية مباشرة
+    // لالتقاط صورة للمستند بدلاً من فتح معرض الصور
+    const cameraCaptureInput = document.getElementById('camera-capture');
+    if (cameraCaptureInput) {
+        cameraCaptureInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = ''; // Reset
+            }
+        });
+    }
+
+    const downloadTranslatedImageBtn = document.getElementById('download-translated-image-btn');
+    if (downloadTranslatedImageBtn) {
+        downloadTranslatedImageBtn.addEventListener('click', () => {
+            const img = document.getElementById('translated-image');
+            const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+            if (!img || !img.src) return;
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `translated_image_${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.showToast(isAr ? 'تم تحميل الصورة المترجمة!' : 'Translated image downloaded!', 'success');
+        });
+    }
+
+    // --- File Download Logic ---
+    window.downloadTranslation = function(format) {
+        const text = document.getElementById('target-text').value;
+        const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+        if (!text) {
+            window.showToast(isAr ? 'لا يوجد نص لتحميله' : 'No text to download', 'error');
+            return;
+        }
+
+        const filename = `translation_${Date.now()}.${format}`;
+
+        if (format === 'txt') {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            window.showToast(isAr ? 'تم تحميل ملف النص بنجاح!' : 'TXT file downloaded successfully!', 'success');
+        } else if (format === 'pdf' || format === 'docx') {
+            // For a production app, generating PDF or DOCX client-side requires libraries like jsPDF or docx.
+            // For simplicity here, we simulate it via a txt file or use a simple blob since we lack the libraries without npm.
+            // Actually, we can generate a simple HTML-based docx and print dialog for PDF.
+
+            if (format === 'pdf') {
+                const printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write('<html><head><title>Translation</title>');
+                printWindow.document.write('<style>body{font-family: Arial, sans-serif; padding: 20px;} p{white-space: pre-wrap; direction: auto;}</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<p>' + text.replace(/\n/g, '<br>') + '</p>');
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
+            } else {
+                // simple docx format using HTML
+                const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Translation</title></head><body>";
+                const footer = "</body></html>";
+                const sourceHTML = header + "<p style='direction:auto'>" + text.replace(/\n/g, "<br>") + "</p>" + footer;
+
+                const blob = new Blob(['﻿', sourceHTML], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+            window.showToast(isAr ? `تم محاولة حفظ ملف ${format.toUpperCase()} بنجاح!` : `${format.toUpperCase()} file generated!`, 'success');
+        }
+
+        // Hide dropdown
+        const options = document.getElementById('download-options');
+        if (options) options.classList.add('hidden');
+    };
 
 });
