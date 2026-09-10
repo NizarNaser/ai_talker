@@ -1,5 +1,6 @@
 /* Variables & Themes */
 :root {
+    color-scheme: dark light;
     --primary-color: #6366f1;
     --primary-hover: #4f46e5;
     --secondary-color: #ec4899;
