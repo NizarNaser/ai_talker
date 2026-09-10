@@ -531,42 +531,47 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchLikes();
     }
 
-    // 7. Fetch Comments
+    // 7. Fetch Comments (قسم التعليقات موجود فقط في الصفحة الرئيسية)
     const commentsContainer = document.getElementById('comments-container');
-    async function fetchComments() {
-        try {
-            const res = await fetch(`${API_BASE}/comments/`);
-            if(res.ok) {
-                const comments = await res.json();
-                commentsContainer.innerHTML = '';
-                comments.slice(0, 6).forEach(comment => { // Show first 6
-                    const date = new Date(comment.created_at).toLocaleDateString('ar-EG');
-                    const html = `
-                        <div class="comment-card glass-panel animate-up">
-                            <div class="comment-header">
-                                <img src="${comment.user_picture || 'https://via.placeholder.com/40'}" alt="${comment.user_name}" class="comment-avatar">
-                                <div>
-                                    <div class="comment-author">${comment.user_name}</div>
-                                    <div class="comment-date">${date}</div>
+    if (commentsContainer) {
+        async function fetchComments() {
+            try {
+                const res = await fetch(`${API_BASE}/comments/`);
+                if(res.ok) {
+                    const comments = await res.json();
+                    commentsContainer.innerHTML = '';
+                    comments.slice(0, 6).forEach(comment => { // Show first 6
+                        const date = new Date(comment.created_at).toLocaleDateString('ar-EG');
+                        const html = `
+                            <div class="comment-card glass-panel animate-up">
+                                <div class="comment-header">
+                                    <img src="${comment.user_picture || 'https://via.placeholder.com/40'}" alt="${comment.user_name}" class="comment-avatar">
+                                    <div>
+                                        <div class="comment-author">${comment.user_name}</div>
+                                        <div class="comment-date">${date}</div>
+                                    </div>
+                                </div>
+                                <div class="comment-body">
+                                    <p>${comment.content}</p>
                                 </div>
                             </div>
-                            <div class="comment-body">
-                                <p>${comment.content}</p>
-                            </div>
-                        </div>
-                    `;
-                    commentsContainer.insertAdjacentHTML('beforeend', html);
-                });
+                        `;
+                        commentsContainer.insertAdjacentHTML('beforeend', html);
+                    });
+                }
+            } catch (e) {
+                console.error("Error fetching comments:", e);
             }
-        } catch (e) {
-            console.error("Error fetching comments:", e);
         }
+        fetchComments();
     }
-    fetchComments();
 
     // 8. Translation & WebSocket
+    // كل هذا القسم (الترجمة عبر WebSocket، الميكروفون، النطق، النسخ) خاص بواجهة
+    // المترجم الموجودة فقط في الصفحة الرئيسية؛ باقي الصفحات لا تحتوي هذه العناصر.
     let ws;
     const sourceText = document.getElementById('source-text');
+    if (sourceText) {
     const targetText = document.getElementById('target-text');
     const targetSkeleton = document.getElementById('target-skeleton');
     const translateBtn = document.getElementById('translate-btn');
@@ -1124,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('تم نسخ النص بنجاح');
         });
     });
+    } // end if (sourceText)
 
 });
 
