@@ -965,6 +965,18 @@ document.addEventListener('DOMContentLoaded', () => {
             recognition.lang = normalizedLangCode === 'ar' || normalizedLangCode.startsWith('ar-') ? 'ar-SA' : normalizedLangCode;
 
             let hasSpeech = false;
+            // بعض الأجهزة (أندرويد بدون خدمات جوجل، حتى عبر متصفح كروم الرسمي نفسه —
+            // اكتشفنا هذا عملياً على هاتف هواوي حيث لا يحمل user agent الخاص بكروم أي
+            // إشارة لهواوي، فلا يُلتقط بفحص isHuaweiOrNoGMS) لا تُطلق أي حدث خطأ أو
+            // نتيجة إطلاقاً وتبقى "تستمع" إلى ما لا نهاية. لذلك لا نعتمد فقط على كشف
+            // الجهاز، بل نضع مهلة أمان: إن لم تصل أي نتيجة خلال 5 ثوانٍ، نفترض أن خدمة
+            // التعرف الصوتي في المتصفح معطّلة ونتحول تلقائياً للتسجيل عبر الخادم.
+            let watchdogFired = false;
+            const watchdogTimer = setTimeout(() => {
+                watchdogFired = true;
+                console.warn('Speech recognition watchdog: no response within timeout, falling back to server-side recording.');
+                try { recognition.abort(); } catch (e) {}
+            }, 5000);
 
             recognition.onstart = () => {
                 console.log("Speech recognition started.");
@@ -973,6 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             recognition.onresult = (event) => {
+                clearTimeout(watchdogTimer);
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     // Mobile browsers might not correctly set isFinal if interimResults is false
@@ -987,6 +1000,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             recognition.onerror = (event) => {
+                clearTimeout(watchdogTimer);
+                if (watchdogFired) return; // ستتم معالجته في onend بالتحويل للخادم
                 console.error("Mic error:", event.error);
                 let errorMsg = 'حدث خطأ في الميكروفون';
                 if (event.error === 'not-allowed') errorMsg = 'يرجى إعطاء المتصفح صلاحية استخدام الميكروفون.';
@@ -1005,10 +1020,17 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             recognition.onend = () => {
+                clearTimeout(watchdogTimer);
                 console.log("Speech recognition ended.");
                 btnElement.classList.remove('recording');
                 activeRecognition = null;
                 activeBtn = null;
+
+                if (watchdogFired) {
+                    showToast('التعرف الصوتي في هذا المتصفح غير متاح، جاري التحويل للتسجيل عبر الخادم...', 'success');
+                    startServerRecording(btnElement, langCode, onFinalTranscript);
+                    return;
+                }
 
                 if (!hasSpeech) {
                     const msg = isHuaweiOrNoGMS
