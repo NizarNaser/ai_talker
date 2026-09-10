@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <!-- شبكة أمان: إن تعطّل تحميل أي مورد خارجي أو حدث خطأ في main.js لأي سبب (شبكة
+         بطيئة/محظورة على بعض الأجهزة)، يجب ألا تبقى الصفحة عالقة خلف شاشة التحميل. -->
+    <script>
+        setTimeout(function () {
+            var loader = document.getElementById('loader');
+            if (loader && loader.parentNode) {
+                loader.style.transition = 'opacity 0.3s ease';
+                loader.style.opacity = '0';
+                setTimeout(function () { loader.remove(); }, 350);
+            }
+        }, 5000);
+    </script>
     <meta name="robots" content="index, follow">
     <meta name="author" content="AI Talker">
     <title>AI Talker - منصة الترجمة الفورية بالذكاء الاصطناعي | ترجمة صوتية ونصية</title>
@@ -27,11 +39,15 @@
     }
     </script>
     <!-- Google Fonts: Cairo for Arabic, Inter for English -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    
+    <!-- محمّلة بدون حجب أول عرض للصفحة (preload+swap): إن كانت خدمات جوجل بطيئة أو
+         غير متاحة على شبكة/جهاز الزائر، تظهر الصفحة بالخط الاحتياطي بدل أن تتجمّد. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=swap"></noscript>
+
     <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+
     <link rel="stylesheet" href="css/style.css">
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
