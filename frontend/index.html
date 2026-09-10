@@ -373,6 +373,18 @@
         </div>
     </div>
 
+    <!-- Install App Banner (PWA prompt / direct APK for GMS-less devices) -->
+    <div id="install-banner" class="install-banner hidden">
+        <button id="install-banner-close" class="install-banner-close" aria-label="إغلاق"><i class="fa-solid fa-times"></i></button>
+        <img src="assets/images/icon-192x192.png" alt="AI Talker" class="install-banner-icon">
+        <div class="install-banner-text">
+            <strong id="install-banner-title">ثبّت تطبيق AI Talker</strong>
+            <span id="install-banner-subtitle">وصول أسرع وتجربة أفضل للميكروفون</span>
+        </div>
+        <button id="install-banner-action" class="btn-primary install-banner-btn">تثبيت</button>
+    </div>
+
     <script src="js/main.js"></script>
+    <script src="js/install-prompt.js"></script>
 </body>
 </html>

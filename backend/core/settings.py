@@ -167,6 +167,7 @@ REST_FRAMEWORK = {
         'upload': '10/hour',
         'contact': '5/hour',
         'auth': '20/hour',
+        'stt': '60/hour',
     },
 }
 

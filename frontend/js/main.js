@@ -851,6 +851,84 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // على أجهزة هواوي/بدون GMS، تعرّف الكلام المدمج في المتصفح (Web Speech API)
+        // لا يعمل لأنه يعتمد على تطبيق جوجل على الجهاز نفسه. الحل: نسجّل الصوت
+        // عبر getUserMedia/MediaRecorder (يعمل على أي جهاز) ونرسله للخادم ليقوم
+        // هو بطلب التفريغ النصي، فلا علاقة للأمر بوجود خدمات جوجل على جهاز المستخدم.
+        let activeMediaRecorder = null;
+
+        async function startServerRecording(btnElement, langCode, onFinalTranscript) {
+            if (activeMediaRecorder) {
+                activeMediaRecorder.stop();
+                return;
+            }
+
+            const permissionGranted = await ensureMicPermission();
+            if (!permissionGranted) return;
+
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                showToast('تعذّر الوصول إلى الميكروفون: ' + err.message, 'error');
+                return;
+            }
+
+            const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+            const chunks = [];
+
+            recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+            recorder.onstart = () => {
+                btnElement.classList.add('recording');
+                showToast('جاري التسجيل... اضغط مرة أخرى للإيقاف والترجمة', 'success');
+            };
+
+            recorder.onstop = async () => {
+                stream.getTracks().forEach(track => track.stop());
+                btnElement.classList.remove('recording');
+                activeMediaRecorder = null;
+
+                if (chunks.length === 0) {
+                    showToast('لم يتم التقاط أي صوت.', 'error');
+                    return;
+                }
+
+                const blob = new Blob(chunks, { type: mimeType || 'audio/webm' });
+                showToast('جاري تحويل الصوت إلى نص...', 'success');
+
+                try {
+                    const normalizedLang = normalizeLanguageCode(langCode);
+                    const sttLang = normalizedLang === 'ar' || normalizedLang.startsWith('ar-') ? 'ar-SA' : normalizedLang;
+
+                    const formData = new FormData();
+                    formData.append('audio', blob, 'recording.webm');
+                    formData.append('language', sttLang);
+
+                    const res = await fetch(`${API_BASE}/speech-to-text/`, { method: 'POST', body: formData });
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        showToast(data.error || 'تعذّر تحويل الصوت إلى نص.', 'error');
+                        return;
+                    }
+
+                    if (data.text) {
+                        onFinalTranscript(data.text);
+                    } else {
+                        showToast('لم يتم التعرف على أي كلام.', 'error');
+                    }
+                } catch (err) {
+                    console.error('STT request error:', err);
+                    showToast('تعذّر الاتصال بخدمة التعرف الصوتي.', 'error');
+                }
+            };
+
+            activeMediaRecorder = recorder;
+            recorder.start();
+        }
+
         async function startListening(btnElement, langCode, onFinalTranscript) {
             // Stop any existing recognition
             if (activeRecognition) {
@@ -949,6 +1027,13 @@ document.addEventListener('DOMContentLoaded', () => {
             micBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log("micBtn clicked!");
+                if (isHuaweiOrNoGMS) {
+                    startServerRecording(micBtn, sourceLang.value, (transcript) => {
+                        sourceText.value += (sourceText.value ? '\n' : '') + transcript;
+                        sendForTranslation(transcript, sourceLang.value, targetLang.value, 'append');
+                    });
+                    return;
+                }
                 // If it's already recording this button, stop it
                 if (activeBtn === micBtn && activeRecognition) {
                     activeRecognition.stop();
@@ -965,6 +1050,13 @@ document.addEventListener('DOMContentLoaded', () => {
             targetMicBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log("targetMicBtn clicked!");
+                if (isHuaweiOrNoGMS) {
+                    startServerRecording(targetMicBtn, targetLang.value, (transcript) => {
+                        targetText.value += (targetText.value ? '\n' : '') + transcript;
+                        sendForTranslation(transcript, targetLang.value, sourceLang.value, 'append_reverse');
+                    });
+                    return;
+                }
                 // If it's already recording this button, stop it
                 if (activeBtn === targetMicBtn && activeRecognition) {
                     activeRecognition.stop();

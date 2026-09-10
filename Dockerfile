@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-rus \
     tesseract-ocr-jpn \
     tesseract-ocr-kor \
+    ffmpeg \
     libsm6 \
     libxext6 \
     libgomp1 \

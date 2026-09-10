@@ -55,6 +55,8 @@ requests-oauthlib==2.0.0
 service-identity==26.1.0
 six==1.17.0
 soupsieve==2.8.4
+SpeechRecognition==3.10.4
+pydub==0.25.1
 sqlparse==0.5.5
 Twisted==26.4.0
 txaio==26.6.1

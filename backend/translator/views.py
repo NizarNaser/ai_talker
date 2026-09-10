@@ -419,6 +419,71 @@ class FileUploadTranslateView(views.APIView):
             return Response({'error': f'حدث خطأ غير متوقع: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class SpeechToTextView(views.APIView):
+    """واجهة لتحويل تسجيل صوتي إلى نص عبر الخادم.
+
+    تُستخدم كبديل لتعرّف الكلام المدمج في المتصفح (Web Speech API)، الذي لا يعمل
+    على أجهزة هواوي وأي جهاز أندرويد بدون خدمات جوجل (GMS): محرك التعرف الصوتي في
+    أندرويد يعتمد على تطبيق Google نفسه على الجهاز، بينما هذه الواجهة تستقبل الصوت
+    فقط (getUserMedia يعمل على كل الأجهزة) وتقوم الخادم بطلب التفريغ النصي، فلا
+    علاقة للأمر بوجود خدمات جوجل على جهاز المستخدم."""
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'stt'
+
+    def post(self, request):
+        logger = logging.getLogger(__name__)
+        audio_file = request.FILES.get('audio')
+        language = request.data.get('language') or 'ar-SA'
+
+        if not audio_file:
+            return Response({'error': 'لم يتم إرسال تسجيل صوتي.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        max_audio_size = 8 * 1024 * 1024  # 8 MiB
+        if audio_file.size > max_audio_size:
+            return Response({'error': 'حجم التسجيل الصوتي كبير جداً.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        import os
+        import tempfile
+        import speech_recognition as sr
+        from pydub import AudioSegment
+
+        src_path = None
+        wav_path = None
+        try:
+            suffix = os.path.splitext(audio_file.name or 'audio.webm')[1] or '.webm'
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as src_f:
+                for chunk in audio_file.chunks():
+                    src_f.write(chunk)
+                src_path = src_f.name
+
+            wav_path = src_path + '.wav'
+            AudioSegment.from_file(src_path).set_channels(1).set_frame_rate(16000).export(wav_path, format='wav')
+
+            recognizer = sr.Recognizer()
+            with sr.AudioFile(wav_path) as source:
+                audio_data = recognizer.record(source)
+
+            text = recognizer.recognize_google(audio_data, language=language)
+            return Response({'text': text}, status=status.HTTP_200_OK)
+
+        except sr.UnknownValueError:
+            return Response({'error': 'لم يتم التعرف على أي كلام في التسجيل. حاول التحدث بوضوح أكبر.'}, status=status.HTTP_400_BAD_REQUEST)
+        except sr.RequestError as e:
+            logger.error('STT service error: %s', str(e))
+            return Response({'error': 'تعذّر الوصول لخدمة التعرف الصوتي حالياً. حاول لاحقاً.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            logger.error('STT error: %s', str(e))
+            return Response({'error': f'حدث خطأ أثناء تحويل الصوت إلى نص: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            for p in (src_path, wav_path):
+                if p and os.path.exists(p):
+                    try:
+                        os.remove(p)
+                    except OSError:
+                        pass
+
+
 class HealthCheckView(views.APIView):
     """Simple health check endpoint to verify HTTP server reachability."""
     permission_classes = [AllowAny]
