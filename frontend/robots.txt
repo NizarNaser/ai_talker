@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ai-talker-frontend.vercel.app/sitemap.xml
+Sitemap: https://ai-talker-five.vercel.app/sitemap.xml
