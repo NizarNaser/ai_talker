@@ -863,14 +863,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const permissionGranted = await ensureMicPermission();
-            if (!permissionGranted) return;
-
             let stream;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
-                showToast('تعذّر الوصول إلى الميكروفون: ' + err.message, 'error');
+                console.error('getUserMedia permission error:', err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showToast('تم رفض صلاحية الميكروفون. يرجى تفعيلها من إعدادات المتصفح (الموقع → الصلاحيات → الميكروفون) ثم إعادة المحاولة.', 'error');
+                } else if (err.name === 'NotFoundError') {
+                    showToast('لم يتم العثور على ميكروفون متصل بالجهاز.', 'error');
+                } else {
+                    showToast('تعذّر الوصول إلى الميكروفون: ' + err.message, 'error');
+                }
                 return;
             }
 
