@@ -480,52 +480,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const likesCountEl = document.getElementById('likes-count');
     const likeBtn = document.getElementById('like-site-btn');
 
-    async function fetchLikes() {
-        try {
-            const res = await fetch(`${API_BASE}/site-like/`);
-            if(res.ok) {
-                const data = await res.json();
-                likesCountEl.textContent = data.total_likes;
+    // زر "الإعجاب بالموقع" موجود فقط في الصفحة الرئيسية؛ باقي الصفحات (من نحن،
+    // الأسئلة الشائعة، سياسة الخصوصية، الشروط) تُحمّل نفس main.js دون هذا العنصر.
+    if (likeBtn) {
+        async function fetchLikes() {
+            try {
+                const res = await fetch(`${API_BASE}/site-like/`);
+                if(res.ok) {
+                    const data = await res.json();
+                    likesCountEl.textContent = data.total_likes;
+                }
+            } catch (e) {
+                console.error("Error fetching likes:", e);
             }
-        } catch (e) {
-            console.error("Error fetching likes:", e);
-        }
-    }
-
-    // Check if liked today
-    const lastLikeDate = localStorage.getItem('lastLikeDate');
-    const todayStr = new Date().toDateString();
-    if (lastLikeDate === todayStr) {
-        likeBtn.classList.add('liked');
-    }
-
-    likeBtn.addEventListener('click', async () => {
-        const currentDateStr = new Date().toDateString();
-        const storedDate = localStorage.getItem('lastLikeDate');
-        
-        if (storedDate === currentDateStr) {
-            const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
-            showToast(isAr ? 'لقد قمت بتسجيل إعجابك اليوم بالفعل، يمكنك العودة غداً!' : 'You already liked this today, come back tomorrow!', 'error');
-            return;
         }
 
-        try {
-            const res = await fetch(`${API_BASE}/site-like/`, { method: 'POST' });
-            if(res.ok) {
-                const data = await res.json();
-                likesCountEl.textContent = data.total_likes;
-                likeBtn.classList.add('liked');
-                localStorage.setItem('lastLikeDate', currentDateStr);
-                
+        // Check if liked today
+        const lastLikeDate = localStorage.getItem('lastLikeDate');
+        const todayStr = new Date().toDateString();
+        if (lastLikeDate === todayStr) {
+            likeBtn.classList.add('liked');
+        }
+
+        likeBtn.addEventListener('click', async () => {
+            const currentDateStr = new Date().toDateString();
+            const storedDate = localStorage.getItem('lastLikeDate');
+
+            if (storedDate === currentDateStr) {
                 const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
-                showToast(isAr ? 'شكراً لدعمك!' : 'Thanks for your support!', 'success');
+                showToast(isAr ? 'لقد قمت بتسجيل إعجابك اليوم بالفعل، يمكنك العودة غداً!' : 'You already liked this today, come back tomorrow!', 'error');
+                return;
             }
-        } catch (e) {
-            showToast('حدث خطأ، يرجى المحاولة لاحقاً.', 'error');
-        }
-    });
 
-    fetchLikes();
+            try {
+                const res = await fetch(`${API_BASE}/site-like/`, { method: 'POST' });
+                if(res.ok) {
+                    const data = await res.json();
+                    likesCountEl.textContent = data.total_likes;
+                    likeBtn.classList.add('liked');
+                    localStorage.setItem('lastLikeDate', currentDateStr);
+
+                    const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+                    showToast(isAr ? 'شكراً لدعمك!' : 'Thanks for your support!', 'success');
+                }
+            } catch (e) {
+                showToast('حدث خطأ، يرجى المحاولة لاحقاً.', 'error');
+            }
+        });
+
+        fetchLikes();
+    }
 
     // 7. Fetch Comments
     const commentsContainer = document.getElementById('comments-container');
