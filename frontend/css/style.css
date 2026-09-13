@@ -849,6 +849,139 @@ footer {
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
 }
+
+/* Conversation Mode: hands-free two-party dialogue view */
+.modal-content.conversation-panel {
+    max-width: 560px;
+    width: 94%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+}
+
+.conversation-parties {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+}
+
+.conversation-parties .party {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.conversation-parties .party-a { color: var(--primary-color); }
+.conversation-parties .party-b { color: var(--secondary-color); }
+
+.conversation-chat {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 220px;
+    max-height: 48vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.5rem 0.25rem;
+    margin-bottom: 1rem;
+    text-align: start;
+}
+
+.conversation-chat:empty::before {
+    content: "لا توجد رسائل بعد";
+    display: block;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 2rem;
+}
+
+.conv-msg {
+    max-width: 82%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 14px;
+    animation: convMsgIn 0.25s ease;
+}
+
+@keyframes convMsgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.conv-msg .conv-original {
+    font-size: 0.78rem;
+    opacity: 0.75;
+    margin-bottom: 0.2rem;
+}
+
+.conv-msg .conv-translated {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.conv-msg.speaker-a {
+    align-self: flex-start;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid var(--glass-border);
+}
+
+.conv-msg.speaker-b {
+    align-self: flex-end;
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid var(--glass-border);
+}
+
+.conv-msg.system {
+    align-self: center;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    max-width: 100%;
+}
+
+.conversation-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+    min-height: 1.4rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.conv-mic-indicator {
+    display: none;
+}
+
+.conversation-status.listening {
+    color: var(--primary-color);
+}
+
+.conversation-status.listening .conv-mic-indicator {
+    display: inline-block;
+    color: var(--secondary-color);
+    animation: pulse 1.5s infinite;
+}
+
+.conversation-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
 .btn-social {
     width: 100%;
     padding: 0.8rem;

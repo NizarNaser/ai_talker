@@ -270,7 +270,7 @@
             </div>
             
             <div class="conversation-mode text-center mt-3">
-                <button class="btn-secondary"><i class="fa-solid fa-people-arrows"></i> <span data-i18n="live_conversation">وضع المحادثة المباشرة</span></button>
+                <button class="btn-secondary" onclick="openConversationModal()"><i class="fa-solid fa-people-arrows"></i> <span data-i18n="live_conversation">وضع المحادثة المباشرة</span></button>
             </div>
         </div>
     </section>
@@ -400,6 +400,37 @@
                 </div>
                 <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" data-i18n="comment_submit">نشر التعليق</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Conversation Mode Modal: hands-free two-party dialogue view -->
+    <div id="conversation-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel conversation-panel">
+            <button class="close-modal-btn" onclick="closeConversationModal()" aria-label="إغلاق وضع المحادثة"><i class="fa-solid fa-times"></i></button>
+            <h3 data-i18n="conversation_title">وضع المحادثة الحية</h3>
+            <p class="conversation-subtitle" data-i18n="conversation_subtitle">تحدث بالتناوب، وسيقوم التطبيق بتسجيل صوتك وترجمته تلقائيًا وعرضه كمحادثة</p>
+
+            <div class="conversation-parties" id="conversation-parties">
+                <span class="party party-a" id="party-a-label"><i class="fa-solid fa-circle-user" aria-hidden="true"></i> المتحدث الأول</span>
+                <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
+                <span class="party party-b" id="party-b-label"><i class="fa-solid fa-circle-user" aria-hidden="true"></i> المتحدث الثاني</span>
+            </div>
+
+            <div id="conversation-chat" class="conversation-chat" role="log" aria-live="polite" aria-label="سجل المحادثة"></div>
+
+            <div class="conversation-status" id="conversation-status">
+                <i class="fa-solid fa-microphone conv-mic-indicator" id="conv-mic-indicator" aria-hidden="true"></i>
+                <span id="conversation-status-text" data-i18n="conversation_idle">اضغط "ابدأ المحادثة" للبدء</span>
+            </div>
+
+            <div class="conversation-controls">
+                <button class="btn-primary conversation-start-btn" id="conversation-start-btn" type="button">
+                    <i class="fa-solid fa-microphone" aria-hidden="true"></i> <span data-i18n="conversation_start">ابدأ المحادثة</span>
+                </button>
+                <button class="btn-secondary conversation-end-btn hidden" id="conversation-end-btn" type="button">
+                    <i class="fa-solid fa-stop" aria-hidden="true"></i> <span data-i18n="conversation_end">إنهاء المحادثة</span>
+                </button>
+            </div>
         </div>
     </div>
 

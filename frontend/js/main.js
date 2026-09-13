@@ -612,6 +612,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = JSON.parse(e.data);
                 // تجاهل رسائل ping/connected من السيرفر
                 if (data.type === 'ping' || data.status === 'connected') return;
+
+                // ردود وضع المحادثة الحية لها معالجة منفصلة (فقاعات دردشة، ليس الصندوقين)
+                if (data.mode && data.mode.indexOf('conv_') === 0) {
+                    if (typeof convHandleWsResult === 'function') convHandleWsResult(data);
+                    return;
+                }
+
                 if(data.status === 'success') {
                     let isReverse = data.mode.includes('reverse');
                     let targetEl = isReverse ? sourceText : targetText;
@@ -1129,6 +1136,289 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('تم نسخ النص بنجاح');
         });
     });
+
+    // 12. Conversation Mode: hands-free two-party dialogue.
+    // بدل الضغط على المايك لبدء التسجيل والضغط مرة ثانية لإيقافه، هذا الوضع
+    // يستمع تلقائياً ويوقف التسجيل بنفسه عند اكتشاف صمت بعد الكلام (Voice
+    // Activity Detection عبر Web Audio API)، ويعرض الترجمة كمحادثة (فقاعات
+    // متبادلة) بدل صندوقي النص. يعمل بشكل مستقل عن وضع الترجمة الكلاسيكي.
+    const conversationModal = document.getElementById('conversation-modal');
+    if (conversationModal) {
+        const convChat = document.getElementById('conversation-chat');
+        const convStatus = document.getElementById('conversation-status');
+        const convStatusText = document.getElementById('conversation-status-text');
+        const convStartBtn = document.getElementById('conversation-start-btn');
+        const convEndBtn = document.getElementById('conversation-end-btn');
+        const partyALabel = document.getElementById('party-a-label');
+        const partyBLabel = document.getElementById('party-b-label');
+
+        let convActive = false;
+        let convLangA = null, convLangB = null;
+        let convTurnToken = 0; // يزداد عند كل بدء/إنهاء لإبطال أي استدعاءات معلّقة من دورة سابقة
+        let convStream = null;
+        let convAudioCtx = null;
+        let convVadRAF = null;
+        const pendingConvCallbacks = {};
+
+        function convSetStatus(text, listening) {
+            convStatusText.textContent = text;
+            convStatus.classList.toggle('listening', !!listening);
+        }
+
+        function convAppendMessage(speaker, originalText, translatedText) {
+            const div = document.createElement('div');
+            div.className = 'conv-msg speaker-' + speaker;
+            const orig = document.createElement('div');
+            orig.className = 'conv-original';
+            orig.textContent = originalText;
+            const trans = document.createElement('div');
+            trans.className = 'conv-translated';
+            trans.textContent = translatedText;
+            div.appendChild(orig);
+            div.appendChild(trans);
+            convChat.appendChild(div);
+            convChat.scrollTop = convChat.scrollHeight;
+        }
+
+        function convAppendSystem(text) {
+            const div = document.createElement('div');
+            div.className = 'conv-msg system';
+            div.textContent = text;
+            convChat.appendChild(div);
+            convChat.scrollTop = convChat.scrollHeight;
+        }
+
+        function convStopStream() {
+            if (convVadRAF) { cancelAnimationFrame(convVadRAF); convVadRAF = null; }
+            if (convAudioCtx) { try { convAudioCtx.close(); } catch (e) {} convAudioCtx = null; }
+            if (convStream) { convStream.getTracks().forEach(t => t.stop()); convStream = null; }
+        }
+
+        function convStopConversation(systemMsg) {
+            convActive = false;
+            convTurnToken++;
+            convStopStream();
+            convStartBtn.classList.remove('hidden');
+            convEndBtn.classList.add('hidden');
+            convSetStatus('اضغط "ابدأ المحادثة" للبدء', false);
+            if (systemMsg) convAppendSystem(systemMsg);
+        }
+
+        // يراقب طاقة الصوت الحي عبر AnalyserNode، ويستدعي onSilenceAfterSpeech
+        // تلقائياً بعد فترة صمت تلي كلاماً فعلياً، أو onTimeoutNoSpeech إن لم
+        // يُلتقط أي صوت إطلاقاً خلال maxWaitMs (بدل الاعتماد على ضغطة يدوية للإيقاف).
+        function convStartVAD(stream, { onSilenceAfterSpeech, onTimeoutNoSpeech, silenceMs = 1100, maxWaitMs = 8000 }) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContextClass();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 512;
+            source.connect(analyser);
+            const data = new Uint8Array(analyser.fftSize);
+            convAudioCtx = audioCtx;
+
+            const startedAt = performance.now();
+            let hasSpeech = false;
+            let lastVoiceAt = startedAt;
+            const SPEECH_RMS_THRESHOLD = 0.02;
+
+            function tick() {
+                analyser.getByteTimeDomainData(data);
+                let sumSquares = 0;
+                for (let i = 0; i < data.length; i++) {
+                    const v = (data[i] - 128) / 128;
+                    sumSquares += v * v;
+                }
+                const rms = Math.sqrt(sumSquares / data.length);
+                const now = performance.now();
+
+                if (rms > SPEECH_RMS_THRESHOLD) {
+                    hasSpeech = true;
+                    lastVoiceAt = now;
+                }
+
+                if (!hasSpeech && (now - startedAt > maxWaitMs)) {
+                    onTimeoutNoSpeech();
+                    return;
+                }
+                if (hasSpeech && (now - lastVoiceAt > silenceMs)) {
+                    onSilenceAfterSpeech();
+                    return;
+                }
+                convVadRAF = requestAnimationFrame(tick);
+            }
+            convVadRAF = requestAnimationFrame(tick);
+        }
+
+        async function convStartTurn(turn) {
+            if (!convActive) return;
+            const myToken = convTurnToken;
+            const langCode = turn === 'a' ? convLangA : convLangB;
+            const speakerName = turn === 'a' ? partyALabel.textContent : partyBLabel.textContent;
+
+            convSetStatus('دور ' + speakerName.trim() + ' — تحدث الآن...', true);
+
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
+                if (myToken !== convTurnToken) return;
+                showToast('تعذّر الوصول إلى الميكروفون: ' + (err.message || err.name), 'error');
+                convStopConversation('تم إيقاف المحادثة بسبب مشكلة في الميكروفون.');
+                return;
+            }
+            if (myToken !== convTurnToken) { stream.getTracks().forEach(t => t.stop()); return; }
+            convStream = stream;
+
+            const mimeType = ['audio/webm', 'audio/ogg', 'audio/mp4'].find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+            const chunks = [];
+            recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+            recorder.onstop = async () => {
+                convStopStream();
+                if (myToken !== convTurnToken) return;
+
+                if (chunks.length === 0) {
+                    convSetStatus('لم يُلتقط أي صوت، جاري إعادة المحاولة...', false);
+                    setTimeout(() => { if (convActive && myToken === convTurnToken) convStartTurn(turn); }, 600);
+                    return;
+                }
+
+                const blob = new Blob(chunks, { type: mimeType || 'audio/webm' });
+                convSetStatus('جاري تحويل الصوت إلى نص...', false);
+
+                try {
+                    const normalizedLang = normalizeLanguageCode(langCode);
+                    const sttLang = (normalizedLang === 'ar' || normalizedLang.startsWith('ar-')) ? 'ar-SA' : normalizedLang;
+                    const formData = new FormData();
+                    formData.append('audio', blob, 'recording.webm');
+                    formData.append('language', sttLang);
+
+                    const res = await fetch(`${API_BASE}/speech-to-text/`, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (myToken !== convTurnToken) return;
+
+                    if (!res.ok || !data.text) {
+                        convSetStatus('لم يتم التعرف على أي كلام، حاول مرة أخرى...', false);
+                        setTimeout(() => { if (convActive && myToken === convTurnToken) convStartTurn(turn); }, 800);
+                        return;
+                    }
+
+                    convSetStatus('جاري الترجمة...', false);
+                    convSendTurnForTranslation(data.text, turn, myToken);
+                } catch (err) {
+                    if (myToken !== convTurnToken) return;
+                    convSetStatus('تعذّر الاتصال بخدمة التعرف الصوتي، حاول مرة أخرى...', false);
+                    setTimeout(() => { if (convActive && myToken === convTurnToken) convStartTurn(turn); }, 800);
+                }
+            };
+
+            recorder.start();
+            convStartVAD(stream, {
+                silenceMs: 1100,
+                maxWaitMs: 8000,
+                onSilenceAfterSpeech: () => { if (recorder.state !== 'inactive') recorder.stop(); },
+                onTimeoutNoSpeech: () => { if (recorder.state !== 'inactive') recorder.stop(); }
+            });
+        }
+
+        function convSendTurnForTranslation(text, turn, myToken) {
+            const fromLang = turn === 'a' ? convLangA : convLangB;
+            const toLang = turn === 'a' ? convLangB : convLangA;
+            const mode = 'conv_' + turn;
+
+            pendingConvCallbacks[mode] = { turn, myToken, originalText: text };
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    text: text,
+                    source_lang: normalizeLanguageCode(fromLang),
+                    target_lang: normalizeLanguageCode(toLang),
+                    mode: mode
+                }));
+            } else {
+                delete pendingConvCallbacks[mode];
+                showToast('فقد الاتصال بالخادم، حاول مرة أخرى...', 'error');
+                convSetStatus('فقد الاتصال بالخادم، حاول مرة أخرى...', false);
+                setTimeout(() => { if (convActive && myToken === convTurnToken) convStartTurn(turn); }, 1000);
+            }
+        }
+
+        // يُستدعى من معالج ws.onmessage الرئيسي عند وصول رد بخاصية mode تبدأ بـ conv_
+        function convHandleWsResult(data) {
+            const pending = pendingConvCallbacks[data.mode];
+            if (!pending) return;
+            delete pendingConvCallbacks[data.mode];
+            if (pending.myToken !== convTurnToken) return; // محادثة قديمة/منتهية
+
+            if (data.status !== 'success') {
+                convSetStatus('حدث خطأ في الترجمة، حاول مرة أخرى...', false);
+                setTimeout(() => { if (convActive && pending.myToken === convTurnToken) convStartTurn(pending.turn); }, 800);
+                return;
+            }
+
+            convAppendMessage(pending.turn, pending.originalText, data.translated);
+
+            const nextTurn = pending.turn === 'a' ? 'b' : 'a';
+            const replyLang = normalizeLanguageCode(pending.turn === 'a' ? convLangB : convLangA);
+
+            const advance = () => {
+                if (!convActive || pending.myToken !== convTurnToken) return;
+                convStartTurn(nextTurn);
+            };
+
+            if (data.audio_base64) {
+                try {
+                    const audio = new Audio("data:audio/mp3;base64," + data.audio_base64);
+                    audio.onended = advance;
+                    audio.onerror = advance;
+                    audio.play().catch(advance);
+                } catch (e) {
+                    advance();
+                }
+            } else {
+                let langToSpeak = (replyLang === 'ar' || replyLang.startsWith('ar-')) ? 'ar-SA' : replyLang;
+                const utterance = new SpeechSynthesisUtterance(data.translated);
+                utterance.lang = langToSpeak;
+                utterance.onend = advance;
+                utterance.onerror = advance;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        convStartBtn.addEventListener('click', () => {
+            if (convActive) return;
+            convLangA = sourceLang.value;
+            convLangB = targetLang.value;
+            partyALabel.innerHTML = '<i class="fa-solid fa-circle-user" aria-hidden="true"></i> ' + sourceLang.options[sourceLang.selectedIndex].text;
+            partyBLabel.innerHTML = '<i class="fa-solid fa-circle-user" aria-hidden="true"></i> ' + targetLang.options[targetLang.selectedIndex].text;
+            convChat.innerHTML = '';
+            convActive = true;
+            convTurnToken++;
+            convStartBtn.classList.add('hidden');
+            convEndBtn.classList.remove('hidden');
+            convAppendSystem('بدأت المحادثة');
+            convStartTurn('a');
+        });
+
+        convEndBtn.addEventListener('click', () => {
+            convStopConversation('تم إنهاء المحادثة.');
+        });
+
+        window.openConversationModal = function() {
+            conversationModal.classList.remove('hidden');
+        };
+
+        window.closeConversationModal = function() {
+            conversationModal.classList.add('hidden');
+            if (convActive) convStopConversation();
+        };
+
+        window.addEventListener('click', function(e) {
+            if (e.target === conversationModal) window.closeConversationModal();
+        });
+    }
     } // end if (sourceText)
 
 });
