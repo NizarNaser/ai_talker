@@ -254,7 +254,7 @@ GOOGLE_TRANSLATE_API_KEY = os.environ.get('GOOGLE_TRANSLATE_API_KEY', '')
 # (بخلاف Google Cloud Translation API أعلاه). يُستخدم قبل خدمتي الترجمة
 # المجانيتين القديمتين (GoogleTranslator المجاني وMyMemory) إن كان مضبوطاً.
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.0-flash')
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.6-flash')
 
 # إعدادات Cloudinary لرفع الملفات
 import os
