@@ -6,6 +6,7 @@
 """
 import logging
 
+from django.conf import settings
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 logger = logging.getLogger(__name__)
@@ -61,8 +62,10 @@ class ResilientTranslator:
 
     def _get_mymemory(self):
         if self._mymemory is None:
+            contact_email = getattr(settings, 'MYMEMORY_CONTACT_EMAIL', '')
+            kwargs = {'email': contact_email} if contact_email else {}
             self._mymemory = MyMemoryTranslator(
-                source=_mymemory_lang(self.source), target=_mymemory_lang(self.target)
+                source=_mymemory_lang(self.source), target=_mymemory_lang(self.target), **kwargs
             )
         return self._mymemory
 
@@ -86,7 +89,13 @@ class ResilientTranslator:
             return self._translate_with_mymemory(text)
         except Exception as e:
             logger.warning('MyMemory fallback also failed: %s', e)
-            return text
+            # كلا خدمتي الترجمة المجانيتين فشلتا (على الأغلب حظر/تقييد مؤقت
+            # على IP الخادم). سابقاً كان الكود يُرجع النص الأصلي بصمت هنا،
+            # فيظهر للمستخدم وكأن الترجمة "نجحت" بينما لم تُترجم الكلمة فعلياً.
+            # رفع استثناء يجعل الفشل مرئياً بدل إخفائه.
+            raise RuntimeError(
+                'تعذّرت الترجمة مؤقتاً؛ خدمات الترجمة المجانية مشغولة حالياً. حاول مرة أخرى بعد قليل.'
+            ) from e
 
     def translate_batch(self, texts):
         return [self.translate(t) for t in texts]

@@ -92,37 +92,53 @@ class TranslationConsumer(AsyncWebsocketConsumer):
             def perform_translation():
                 try:
                     res_text = ResilientTranslator(source=src_lang, target=tgt_lang).translate(text)
-                    audio_b64 = ""
-                    try:
-                        from gtts import gTTS
-                        import base64
-                        import io
-                        tts_lang = tgt_lang
-                        # gTTS supports zh-CN and zh-TW directly
-                        if tgt_lang == 'zh': tts_lang = 'zh-CN'
-                        tts = gTTS(text=res_text, lang=tts_lang)
-                        fp = io.BytesIO()
-                        tts.write_to_fp(fp)
-                        fp.seek(0)
-                        audio_b64 = base64.b64encode(fp.read()).decode('utf-8')
-                    except Exception as tts_e:
-                        print(f"TTS Error: {tts_e}")
-                    
-                    return res_text, audio_b64
                 except Exception as e:
-                    return f"خطأ في الترجمة: {str(e)}", ""
-            
-            translated_text, audio_b64 = await asyncio.to_thread(perform_translation)
+                    # فشلت كل خدمات الترجمة (Google وMyMemory معاً). سابقاً كان
+                    # يُعاد هذا النص كأنه "ترجمة ناجحة" فيبدو الأمر وكأن التطبيق
+                    # لا يترجم بصمت؛ الآن يُعاد كخطأ صريح ليعرف الطرف الآخر
+                    # (الواجهة الكلاسيكية أو وضع المحادثة) أن يُظهر خطأ حقيقياً
+                    # بدل نص غير مُترجم.
+                    return False, str(e), ""
 
-            await self.send(text_data=json.dumps({
-                'original': text,
-                'translated': translated_text,
-                'audio_base64': audio_b64,
-                'source_lang': source_lang,
-                'target_lang': target_lang,
-                'mode': mode,
-                'status': 'success'
-            }))
+                audio_b64 = ""
+                try:
+                    from gtts import gTTS
+                    import base64
+                    import io
+                    tts_lang = tgt_lang
+                    # gTTS supports zh-CN and zh-TW directly
+                    if tgt_lang == 'zh': tts_lang = 'zh-CN'
+                    tts = gTTS(text=res_text, lang=tts_lang)
+                    fp = io.BytesIO()
+                    tts.write_to_fp(fp)
+                    fp.seek(0)
+                    audio_b64 = base64.b64encode(fp.read()).decode('utf-8')
+                except Exception as tts_e:
+                    print(f"TTS Error: {tts_e}")
+
+                return True, res_text, audio_b64
+
+            translation_ok, translated_text, audio_b64 = await asyncio.to_thread(perform_translation)
+
+            if translation_ok:
+                await self.send(text_data=json.dumps({
+                    'original': text,
+                    'translated': translated_text,
+                    'audio_base64': audio_b64,
+                    'source_lang': source_lang,
+                    'target_lang': target_lang,
+                    'mode': mode,
+                    'status': 'success'
+                }))
+            else:
+                await self.send(text_data=json.dumps({
+                    'original': text,
+                    'source_lang': source_lang,
+                    'target_lang': target_lang,
+                    'mode': mode,
+                    'status': 'error',
+                    'message': translated_text
+                }))
         except Exception as e:
             await self.send(text_data=json.dumps({
                 'status': 'error',

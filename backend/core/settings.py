@@ -241,6 +241,10 @@ CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', EMAIL_HOST_USER or DEFAULT_FROM_
 # (نفس القيمة يجب وضعها في GOOGLE_CLIENT_ID داخل frontend/js/main.js)
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 
+# بريد إلكتروني يُرسَل مع طلبات خدمة MyMemory للترجمة الاحتياطية (translate_utils.py)؛
+# MyMemory يضاعف الحصة المجانية اليومية (من 5,000 إلى 10,000 حرف) لكل IP إذا تم إرفاق بريد.
+MYMEMORY_CONTACT_EMAIL = os.environ.get('MYMEMORY_CONTACT_EMAIL', '')
+
 # إعدادات Cloudinary لرفع الملفات
 import os
 CLOUDINARY_STORAGE = {
