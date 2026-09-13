@@ -1,15 +1,20 @@
 """
 طبقة ترجمة موحّدة تُستخدم في كل أنحاء المشروع (الترجمة الفورية، ترجمة
-الملفات والصور). تعتمد على Google Translate أساساً، وإن فشل (تعطل مؤقت،
-حظر/تقييد على الخادم، عدم توفره لأي سبب) تنتقل تلقائياً إلى MyMemory
-كخدمة ترجمة مجانية بديلة، بدل أن تتعطل الترجمة بالكامل.
+الملفات والصور). ثلاث طبقات بالترتيب: Google Cloud Translation API الرسمي
+والمدفوع (إن كان مفتاحه مضبوطاً؛ موثوق وبلا حدود استخدام مجانية مشتركة)،
+ثم GoogleTranslator المجاني (استخراج بيانات من صفحة الترجمة العامة، عرضة
+للحظر/التقييد)، ثم MyMemory كخدمة مجانية أخيرة بديلة، بدل أن تتعطل
+الترجمة بالكامل عند فشل أي طبقة.
 """
 import logging
 
+import requests
 from django.conf import settings
 from deep_translator import GoogleTranslator, MyMemoryTranslator
 
 logger = logging.getLogger(__name__)
+
+_CLOUD_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2'
 
 # MyMemory تتطلب رموز لغة بصيغة locale (مثل ar-SA) بخلاف Google الذي يقبل
 # رموزاً مبسطة (ar). هذا الجدول يحوّل رموز المشروع البسيطة لما تفهمه MyMemory.
@@ -75,26 +80,50 @@ class ResilientTranslator:
         translated_chunks = [mm.translate(chunk) or chunk for chunk in chunks]
         return ' '.join(translated_chunks)
 
+    def _translate_with_cloud_api(self, text):
+        api_key = getattr(settings, 'GOOGLE_TRANSLATE_API_KEY', '')
+        if not api_key:
+            return None
+        payload = {'q': text, 'target': self.target, 'format': 'text'}
+        if self.source and self.source != 'auto':
+            payload['source'] = self.source
+        response = requests.post(
+            _CLOUD_TRANSLATE_API_URL, params={'key': api_key}, data=payload, timeout=10
+        )
+        response.raise_for_status()
+        return response.json()['data']['translations'][0]['translatedText']
+
     def translate(self, text):
         if not text or not text.strip():
             return text
+
+        # الطبقة الأولى: Google Cloud Translation API الرسمي (مدفوع)، إن كان
+        # مفتاحه مضبوطاً. أكثر موثوقية من الخدمتين المجانيتين تحته لأنه غير
+        # عرضة لتقييد/حظر الاستخدام المشترك على IP خوادم Render.
+        try:
+            result = self._translate_with_cloud_api(text)
+            if result:
+                return result
+        except Exception as e:
+            logger.warning('Google Cloud Translation API failed, falling back: %s', e)
+
         try:
             result = self._google.translate(text)
             if result:
                 return result
         except Exception as e:
-            logger.warning('Google Translate failed, falling back to MyMemory: %s', e)
+            logger.warning('Google Translate (free) failed, falling back to MyMemory: %s', e)
 
         try:
             return self._translate_with_mymemory(text)
         except Exception as e:
             logger.warning('MyMemory fallback also failed: %s', e)
-            # كلا خدمتي الترجمة المجانيتين فشلتا (على الأغلب حظر/تقييد مؤقت
-            # على IP الخادم). سابقاً كان الكود يُرجع النص الأصلي بصمت هنا،
-            # فيظهر للمستخدم وكأن الترجمة "نجحت" بينما لم تُترجم الكلمة فعلياً.
-            # رفع استثناء يجعل الفشل مرئياً بدل إخفائه.
+            # فشلت كل الطبقات الثلاث (أو الطبقتين المجانيتين إن لم يُضبط مفتاح
+            # Cloud API). سابقاً كان الكود يُرجع النص الأصلي بصمت هنا، فيظهر
+            # للمستخدم وكأن الترجمة "نجحت" بينما لم تُترجم الكلمة فعلياً. رفع
+            # استثناء يجعل الفشل مرئياً بدل إخفائه.
             raise RuntimeError(
-                'تعذّرت الترجمة مؤقتاً؛ خدمات الترجمة المجانية مشغولة حالياً. حاول مرة أخرى بعد قليل.'
+                'تعذّرت الترجمة مؤقتاً؛ خدمات الترجمة مشغولة حالياً. حاول مرة أخرى بعد قليل.'
             ) from e
 
     def translate_batch(self, texts):

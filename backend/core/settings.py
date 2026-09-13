@@ -245,6 +245,11 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 # MyMemory يضاعف الحصة المجانية اليومية (من 5,000 إلى 10,000 حرف) لكل IP إذا تم إرفاق بريد.
 MYMEMORY_CONTACT_EMAIL = os.environ.get('MYMEMORY_CONTACT_EMAIL', '')
 
+# مفتاح Google Cloud Translation API (خدمة مدفوعة رسمية، منفصلة عن GoogleTranslator
+# المجاني في translate_utils.py الذي يعتمد على استخراج بيانات من صفحة الترجمة العامة).
+# إذا تم ضبطه، يُستخدم كخيار أول موثوق قبل اللجوء للخدمات المجانية عند فشله.
+GOOGLE_TRANSLATE_API_KEY = os.environ.get('GOOGLE_TRANSLATE_API_KEY', '')
+
 # إعدادات Cloudinary لرفع الملفات
 import os
 CLOUDINARY_STORAGE = {
