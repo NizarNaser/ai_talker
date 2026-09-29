@@ -33,3 +33,5 @@ services:
         sync: false
       - key: CONTACT_EMAIL
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false

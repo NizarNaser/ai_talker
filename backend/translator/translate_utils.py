@@ -2,10 +2,10 @@
 طبقة ترجمة موحّدة تُستخدم في كل أنحاء المشروع (الترجمة الفورية، ترجمة
 الملفات والصور). أربع طبقات بالترتيب: Google Cloud Translation API الرسمي
 والمدفوع (إن كان مفتاحه مضبوطاً؛ موثوق وبلا حدود استخدام مجانية مشتركة)،
-ثم Gemini API (مجاني بدون بطاقة بنكية؛ ترجمة عبر نموذج لغوي، إن كان مفتاحه
-مضبوطاً)، ثم GoogleTranslator المجاني (استخراج بيانات من صفحة الترجمة
-العامة، عرضة للحظر/التقييد)، ثم MyMemory كخدمة مجانية أخيرة بديلة، بدل أن
-تتعطل الترجمة بالكامل عند فشل أي طبقة.
+ثم OpenAI API (مدفوع وموثوق؛ ترجمة عبر نموذج لغوي، إن كان مفتاحه مضبوطاً)،
+ثم GoogleTranslator المجاني (استخراج بيانات من صفحة الترجمة العامة، عرضة
+للحظر/التقييد)، ثم MyMemory كخدمة مجانية أخيرة بديلة، بدل أن تتعطل الترجمة
+بالكامل عند فشل أي طبقة.
 """
 import logging
 
@@ -16,9 +16,9 @@ from deep_translator import GoogleTranslator, MyMemoryTranslator
 logger = logging.getLogger(__name__)
 
 _CLOUD_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2'
-_GEMINI_API_URL_TEMPLATE = 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
+_OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
-# أسماء اللغات بالإنجليزية تُستخدم في برومبت Gemini بدل الرموز المختصرة
+# أسماء اللغات بالإنجليزية تُستخدم في برومبت OpenAI بدل الرموز المختصرة
 # (ar, en...) لتقليل احتمال سوء الفهم من النموذج اللغوي.
 _LANG_NAMES = {
     'auto': 'the automatically detected source language',
@@ -72,7 +72,7 @@ def _chunk_text(text, max_len):
 class ResilientTranslator:
     """
     مترجم يجرّب أربع طبقات بالترتيب (Cloud Translation API المدفوع، ثم
-    Gemini API، ثم GoogleTranslator المجاني، ثم MyMemory)، وينتقل تلقائياً
+    OpenAI API، ثم GoogleTranslator المجاني، ثم MyMemory)، وينتقل تلقائياً
     للطبقة التالية عند فشل أي منها، حتى تستمر الترجمة في العمل دون توقف
     كامل عند تعطل أو حظر إحدى الخدمات بشكل مؤقت.
     """
@@ -111,34 +111,31 @@ class ResilientTranslator:
         response.raise_for_status()
         return response.json()['data']['translations'][0]['translatedText']
 
-    def _translate_with_gemini(self, text):
-        api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    def _translate_with_openai(self, text):
+        api_key = getattr(settings, 'OPENAI_API_KEY', '')
         if not api_key:
             return None
-        model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
+        model = getattr(settings, 'OPENAI_MODEL', 'gpt-4o-mini')
         prompt = (
             f"Translate the following text from {_lang_name(self.source)} to "
             f"{_lang_name(self.target)}. Reply with ONLY the translated text — "
             "no quotes, no explanations, no extra commentary.\n\nText:\n" + text
         )
-        url = _GEMINI_API_URL_TEMPLATE.format(model=model)
         response = requests.post(
-            url,
-            params={'key': api_key},
+            _OPENAI_API_URL,
+            headers={'Authorization': f'Bearer {api_key}'},
             json={
-                'contents': [{'parts': [{'text': prompt}]}],
-                'generationConfig': {'temperature': 0.2},
+                'model': model,
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.2,
             },
             timeout=15,
         )
         response.raise_for_status()
-        candidates = response.json().get('candidates') or []
-        if not candidates:
+        choices = response.json().get('choices') or []
+        if not choices:
             return None
-        parts = candidates[0].get('content', {}).get('parts', [])
-        if not parts:
-            return None
-        return parts[0].get('text', '').strip()
+        return choices[0].get('message', {}).get('content', '').strip()
 
     def translate(self, text):
         if not text or not text.strip():
@@ -154,15 +151,15 @@ class ResilientTranslator:
         except Exception as e:
             logger.warning('Google Cloud Translation API failed, falling back: %s', e)
 
-        # الطبقة الثانية: Gemini API (مجاني، بدون بطاقة بنكية)، إن كان مفتاحه
-        # مضبوطاً. يعتمد على مصادقة بمفتاح API لا على IP، فهو غير متأثر
-        # بحظر/تقييد GoogleTranslator وMyMemory المجانيين تحته.
+        # الطبقة الثانية: OpenAI API (مدفوع وموثوق)، إن كان مفتاحه مضبوطاً.
+        # يعتمد على مصادقة بمفتاح API لا على IP، فهو غير متأثر بحظر/تقييد
+        # GoogleTranslator وMyMemory المجانيين تحته.
         try:
-            result = self._translate_with_gemini(text)
+            result = self._translate_with_openai(text)
             if result:
                 return result
         except Exception as e:
-            logger.warning('Gemini API failed, falling back: %s', e)
+            logger.warning('OpenAI API failed, falling back: %s', e)
 
         try:
             result = self._google.translate(text)
@@ -176,7 +173,7 @@ class ResilientTranslator:
         except Exception as e:
             logger.warning('MyMemory fallback also failed: %s', e)
             # فشلت كل الطبقات الأربع (أو الطبقتين المجانيتين فقط إن لم يُضبط
-            # مفتاحا Cloud API وGemini). سابقاً كان الكود يُرجع النص الأصلي بصمت هنا، فيظهر
+            # مفتاحا Cloud API وOpenAI). سابقاً كان الكود يُرجع النص الأصلي بصمت هنا، فيظهر
             # للمستخدم وكأن الترجمة "نجحت" بينما لم تُترجم الكلمة فعلياً. رفع
             # استثناء يجعل الفشل مرئياً بدل إخفائه.
             raise RuntimeError(

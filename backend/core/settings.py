@@ -250,11 +250,10 @@ MYMEMORY_CONTACT_EMAIL = os.environ.get('MYMEMORY_CONTACT_EMAIL', '')
 # إذا تم ضبطه، يُستخدم كخيار أول موثوق قبل اللجوء للخدمات المجانية عند فشله.
 GOOGLE_TRANSLATE_API_KEY = os.environ.get('GOOGLE_TRANSLATE_API_KEY', '')
 
-# مفتاح Gemini API (من aistudio.google.com) كخيار ترجمة موثوق وبدون بطاقة بنكية
-# (بخلاف Google Cloud Translation API أعلاه). يُستخدم قبل خدمتي الترجمة
-# المجانيتين القديمتين (GoogleTranslator المجاني وMyMemory) إن كان مضبوطاً.
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.6-flash')
+# مفتاح OpenAI API (مدفوع وموثوق) كخيار ترجمة قبل خدمتي الترجمة المجانيتين
+# القديمتين (GoogleTranslator المجاني وMyMemory) إن كان مضبوطاً.
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 
 # إعدادات Cloudinary لرفع الملفات
 import os
