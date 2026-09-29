@@ -31,7 +31,15 @@ app.set('trust proxy', 1);
 
 // CSP مُعطّل هنا لأن هذا التطبيق يخدم موقعاً ثابتاً متعدد الصفحات بسكربتات
 // inline قليلة؛ رؤوس الأمان الأخرى (X-Frame-Options، إلخ) تبقى مفعّلة.
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
+// crossOriginOpenerPolicy: القيمة الافتراضية same-origin في helmet تقطع
+// الاتصال بين نافذة تسجيل الدخول المنبثقة من Google وصفحة الموقع، فتظهر
+// صفحة بيضاء للمستخدم بعد اختيار حسابه بدل إتمام تسجيل الدخول.
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
 
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'https://talker.lughaty.cloud')
   .split(',').map((s) => s.trim()).filter(Boolean);
