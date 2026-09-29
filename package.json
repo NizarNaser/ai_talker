@@ -1,17 +1,14 @@
 {
-  "name": "ai-talker-backend",
+  "name": "ai-talker",
   "version": "1.0.0",
   "private": true,
-  "description": "AI Talker backend (Express) + الواجهة الأمامية الثابتة، يعملان معاً كتطبيق واحد.",
-  "main": "server.js",
+  "description": "AI Talker: نقطة تثبيت/تشغيل جذر المستودع لاستضافة Hostinger (Node.js App)، حيث يُنشر مجلد الجذر المحدد فقط فيحتاج backend-node/server.js لإيجاد node_modules والواجهة الأمامية (../frontend) بالنسبة لجذر المستودع نفسه.",
+  "main": "backend-node/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "seed:admin": "node scripts/seedAdmin.js",
-    "db:sync": "node scripts/syncDb.js"
+    "start": "node backend-node/server.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.65",

@@ -1,18 +1,31 @@
-require('dotenv').config();
-
 const path = require('path');
+
+// مسار .env صريح (بدل الاعتماد على process.cwd() الافتراضي في dotenv)، لأن
+// Hostinger ينشر جذر المستودع كاملاً ويشغّل "node backend-node/server.js"
+// من جذر المستودع، فيصبح cwd جذر المستودع لا مجلد backend-node/ نفسه.
+// (في الإنتاج الفعلي على Hostinger لا يوجد ملف .env أصلاً عادة؛ متغيرات
+// البيئة تُضبط مباشرة من لوحة hPanel، فهذا السطر يخدم التطوير المحلي فقط.)
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+// يجب طلبها قبل تعريف أي مسارات: تصحّح Express 4 الذي لا يمرّر رفض
+// الـ Promises في معالجات async تلقائياً لـ next(err)، فكان أي خطأ غير
+// متوقع فيها يُسقط العملية بدل الوصول لمعالج الأخطاء العام أدناه.
+require('express-async-errors');
+
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const multer = require('multer');
 
 const { sequelize } = require('./src/models');
+const { ensureAdminUser } = require('./src/services/adminSeedService');
 const { attachUserIfPresent } = require('./src/middleware/auth');
 const apiRouter = require('./src/routes');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
+const DB_RETRY_MS = 10000;
 
 app.set('trust proxy', 1);
 
@@ -28,6 +41,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(attachUserIfPresent);
 
+// يبقى يعمل حتى إن كانت قاعدة البيانات غير متاحة بعد (راجع connectWithRetry أدناه).
 app.get('/health', (req, res) => res.json({ status: 'ok', message: 'backend alive' }));
 
 app.use('/api', apiRouter);
@@ -41,28 +55,45 @@ app.use((req, res) => {
 });
 
 // معالج أخطاء عام: يحوّل أخطاء multer (حجم ملف كبير...) وأي استثناء غير
-// متوقع إلى رد JSON بدل صفحة خطأ HTML افتراضية من Express.
+// متوقع (بما فيها ما ترفعه معالجات async بفضل express-async-errors أعلاه)
+// إلى رد JSON بدل صفحة خطأ HTML افتراضية من Express أو إسقاط العملية.
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: `خطأ في رفع الملف: ${err.message}` });
   }
-  console.error('Unhandled error:', err);
+  console.error('Unhandled error:', err.message, err.parent?.sqlMessage || '');
   res.status(500).json({ error: 'حدث خطأ غير متوقع في الخادم.' });
 });
 
-async function start() {
+// يحاول الاتصال بقاعدة البيانات وإنشاء/تحديث الجداول وزرع مستخدم الأدمن،
+// ويعيد المحاولة كل 10 ثوانٍ عند الفشل بدل إسقاط العملية بالكامل (لا وصول
+// SSH هنا لإصلاح الإعدادات وإعادة التشغيل يدوياً، فيجب أن يتعافى تلقائياً
+// بمجرد أن تصبح قاعدة البيانات متاحة، بينما يبقى /api/health يعمل طوال ذلك).
+async function connectWithRetry() {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connection established.');
-  } catch (e) {
-    console.error('❌ Unable to connect to the database:', e.message);
-    process.exit(1);
-  }
 
-  app.listen(PORT, () => {
-    console.log(`🚀 AI Talker server running on port ${PORT}`);
-  });
+    await sequelize.sync();
+    console.log('✅ Database tables synced.');
+
+    await ensureAdminUser();
+  } catch (e) {
+    console.error('❌ Database setup failed:', e.message, e.parent?.sqlMessage || '');
+    setTimeout(connectWithRetry, DB_RETRY_MS);
+  }
 }
 
-start();
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled promise rejection:', err?.message, err?.parent?.sqlMessage || '');
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err?.message, err?.parent?.sqlMessage || '');
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 AI Talker server running on port ${PORT}`);
+  connectWithRetry();
+});
