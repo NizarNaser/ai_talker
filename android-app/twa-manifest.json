@@ -1,6 +1,6 @@
 {
   "packageId": "com.aitalker.app",
-  "host": "ai-talker-five.vercel.app",
+  "host": "talker.lughaty.cloud",
   "name": "AI Talker - الترجمة الفورية",
   "launcherName": "AI Talker",
   "display": "standalone",
@@ -13,18 +13,18 @@
   "backgroundColor": "#0F172A",
   "enableNotifications": false,
   "startUrl": "/index.html",
-  "iconUrl": "https://ai-talker-five.vercel.app/assets/images/icon-512x512.png",
-  "maskableIconUrl": "https://ai-talker-five.vercel.app/assets/images/icon-512x512.png",
+  "iconUrl": "https://talker.lughaty.cloud/assets/images/icon-512x512.png",
+  "maskableIconUrl": "https://talker.lughaty.cloud/assets/images/icon-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
     "alias": "aitalker"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 2,
+  "appVersionName": "1.0.1",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://ai-talker-five.vercel.app/manifest.json",
+  "webManifestUrl": "https://talker.lughaty.cloud/manifest.json",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
@@ -44,5 +44,5 @@
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "displayOverride": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.0.1"
 }
