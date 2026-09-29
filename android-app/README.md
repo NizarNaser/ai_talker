@@ -21,6 +21,15 @@ npx @bubblewrap/cli build
 - ملف `android.keystore` (مفتاح التوقيع - **غير موجود في المستودع لأنه سرّي**،
   احتفظ بنسخة منه في مكان آمن؛ بدونه لا يمكن إصدار تحديث بنفس معرّف التطبيق)
 
+**ملاحظة عند نقل الموقع لاستضافة جديدة**: bubblewrap يجلب الأيقونة/المانيفست
+من الدومين الحيّ (`host` في `twa-manifest.json`) بمحرك HTTP/2 خاص به
+(`fetch-h2`) قد تحظره بعض جدران حماية CDN (حدث فعلاً مع Hostinger هنا
+برسالة `Responded with status 403` رغم نجاح نفس الرابط عبر curl/متصفح
+عادي). الحل: أضف `--fetchEngine=node-fetch` لأمر البناء:
+```bash
+npx @bubblewrap/cli build --fetchEngine=node-fetch
+```
+
 بيانات المفتاح (احفظها في مكان آمن، ليست في المستودع):
 - Alias: `aitalker`
 - بصمة SHA256 المسجّلة في `backend-node/public/.well-known/assetlinks.json`:

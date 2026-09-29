@@ -34,7 +34,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://ai-talker-five.vercel.app\"
+            \"site\": \"https://talker.lughaty.cloud\"
         }
     }]
     
