@@ -1,17 +1,21 @@
 """
 أدوات ترجمة الصور مع الحفاظ على نفس ستايل وتصميم الصورة الأصلية.
 
-الفكرة: نستخرج مواقع أسطر النص عبر Tesseract OCR، نترجم كل سطر، ثم نمحو
-النص الأصلي (بتلوين مكانه بلون الخلفية المحيطة به) ونعيد رسم النص المترجم
-في نفس المكان بنفس الحجم التقريبي ولون قريب من لون النص الأصلي، بدلاً من
-إرجاع نص عادي منفصل عن الصورة.
+الفكرة: نستخرج مواقع أسطر النص عبر Google Cloud Vision API (بدل Tesseract
+المحلي الذي يحتاج تثبيت حزمة نظام غير متاحة على الاستضافة المشتركة)، نترجم
+كل سطر، ثم نمحو النص الأصلي (بتلوين مكانه بلون الخلفية المحيطة به) ونعيد رسم
+النص المترجم في نفس المكان بنفس الحجم التقريبي ولون قريب من لون النص
+الأصلي، بدلاً من إرجاع نص عادي منفصل عن الصورة.
 """
+import base64
 import logging
 
-import pytesseract
+import requests
 from PIL import ImageDraw, ImageFont
 
 logger = logging.getLogger(__name__)
+
+_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate'
 
 # خطوط Noto المثبتة على الخادم عبر حزم fonts-noto-core / fonts-noto-cjk.
 # نختار الخط حسب السكربت (نوع الحروف) الفعلي للنص المرسوم وليس فقط حسب
@@ -116,41 +120,69 @@ def _pick_background_and_text_colors(image, box):
     return background, text_color
 
 
-def _group_words_into_lines(ocr_data):
-    """يجمّع كلمات OCR إلى أسطر (بحسب block/paragraph/line) مع حساب صندوق كل سطر."""
-    groups = {}
-    order = []
-    for i in range(len(ocr_data['text'])):
-        text = ocr_data['text'][i].strip()
-        if not text:
-            continue
-        try:
-            conf = float(ocr_data['conf'][i])
-        except (TypeError, ValueError):
-            conf = -1
-        if conf < 0:
-            continue
+def _fetch_vision_document_text(image_bytes, api_key, lang_hints=None):
+    """يرسل الصورة إلى Google Cloud Vision API ويرجع fullTextAnnotation
+    (هيكل صفحة/كتلة/فقرة/كلمة/رمز، مع صندوق إحداثيات لكل كلمة وعلامات فواصل
+    الأسطر)، وهو ما يقوم به Tesseract محلياً لكن دون الحاجة لتثبيته."""
+    payload = {
+        'requests': [{
+            'image': {'content': base64.b64encode(image_bytes).decode('ascii')},
+            'features': [{'type': 'DOCUMENT_TEXT_DETECTION'}],
+            'imageContext': {'languageHints': lang_hints} if lang_hints else {},
+        }]
+    }
+    response = requests.post(_VISION_API_URL, params={'key': api_key}, json=payload, timeout=30)
+    response.raise_for_status()
+    result = response.json()['responses'][0]
+    if 'error' in result:
+        raise RuntimeError(result['error'].get('message', 'Vision API error'))
+    return result.get('fullTextAnnotation')
 
-        key = (ocr_data['block_num'][i], ocr_data['par_num'][i], ocr_data['line_num'][i])
-        left, top = ocr_data['left'][i], ocr_data['top'][i]
-        right, bottom = left + ocr_data['width'][i], top + ocr_data['height'][i]
 
-        if key not in groups:
-            groups[key] = {'words': [], 'left': left, 'top': top, 'right': right, 'bottom': bottom}
-            order.append(key)
+def _word_box(word):
+    xs = [v.get('x', 0) for v in word['boundingBox']['vertices']]
+    ys = [v.get('y', 0) for v in word['boundingBox']['vertices']]
+    return min(xs), min(ys), max(xs), max(ys)
 
-        g = groups[key]
-        g['words'].append(text)
-        g['left'] = min(g['left'], left)
-        g['top'] = min(g['top'], top)
-        g['right'] = max(g['right'], right)
-        g['bottom'] = max(g['bottom'], bottom)
 
-    return [
-        {'text': ' '.join(groups[key]['words']),
-         'box': (groups[key]['left'], groups[key]['top'], groups[key]['right'], groups[key]['bottom'])}
-        for key in order
-    ]
+def _word_text(word):
+    return ''.join(s.get('text', '') for s in word.get('symbols', []))
+
+
+def _word_ends_line(word):
+    symbols = word.get('symbols', [])
+    if not symbols:
+        return False
+    brk = symbols[-1].get('property', {}).get('detectedBreak', {}).get('type')
+    return brk in ('LINE_BREAK', 'EOL_SURE_SPACE')
+
+
+def _group_words_into_lines(annotation):
+    """يجمّع كلمات Vision API إلى أسطر (بالاعتماد على تجميع الفقرات وعلامات
+    فواصل الأسطر التي يرجعها Vision) مع حساب صندوق إحداثيات كل سطر."""
+    lines = []
+    if not annotation:
+        return lines
+
+    for page in annotation.get('pages', []):
+        for block in page.get('blocks', []):
+            for paragraph in block.get('paragraphs', []):
+                words, box = [], None
+                for word in paragraph.get('words', []):
+                    text = _word_text(word).strip()
+                    if text:
+                        words.append(text)
+                        wl, wt, wr, wb = _word_box(word)
+                        box = [wl, wt, wr, wb] if box is None else [
+                            min(box[0], wl), min(box[1], wt), max(box[2], wr), max(box[3], wb)
+                        ]
+                    if _word_ends_line(word) and words:
+                        lines.append({'text': ' '.join(words), 'box': tuple(box)})
+                        words, box = [], None
+                if words:
+                    lines.append({'text': ' '.join(words), 'box': tuple(box)})
+
+    return lines
 
 
 def _fit_font(draw, text, target_lang, max_width, max_height):
@@ -194,16 +226,17 @@ def _translate_lines(texts, translator):
     return translations
 
 
-def translate_image_preserving_style(image, tesseract_lang, target_lang, translator):
+def translate_image_preserving_style(image, image_bytes, lang_hints, target_lang, translator, api_key):
     """
-    يستخرج نص الصورة عبر OCR، يترجمه سطراً بسطر، ثم يعيد رسم الترجمة في نفس
-    أماكن النص الأصلي بنفس الألوان التقريبية، للحفاظ على شكل الصورة الأصلي.
+    يستخرج نص الصورة عبر Google Cloud Vision API، يترجمه سطراً بسطر، ثم يعيد
+    رسم الترجمة في نفس أماكن النص الأصلي بنفس الألوان التقريبية، للحفاظ على
+    شكل الصورة الأصلي.
 
     يرجع (original_text, translated_text, stylized_image) حيث stylized_image
     هو كائن PIL.Image جديد، أو None إذا لم يُعثر على أي نص في الصورة.
     """
-    ocr_data = pytesseract.image_to_data(image, lang=tesseract_lang, output_type=pytesseract.Output.DICT)
-    lines = _group_words_into_lines(ocr_data)[:MAX_LINES]
+    annotation = _fetch_vision_document_text(image_bytes, api_key, lang_hints)
+    lines = _group_words_into_lines(annotation)[:MAX_LINES]
     if not lines:
         return '', '', None
 

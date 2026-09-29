@@ -2,7 +2,8 @@
 إعدادات Django لمشروع AI Talker.
 
 يتضمن هذا الملف إعدادات قاعدة البيانات (MySQL)، واجهات برمجة التطبيقات (DRF)،
-المصادقة (JWT & Google OAuth)، والمقابس (Channels / WebSockets).
+والمصادقة (JWT & Google OAuth). يعمل التطبيق كـ WSGI عادي (بدون Channels/
+WebSockets) ليتوافق مع الاستضافة المشتركة (Passenger على Hostinger).
 """
 
 import os
@@ -39,12 +40,12 @@ if DEBUG:
 else:
     _allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
     ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()] or [
-        'ai-talker-backend.onrender.com',
+        'talker.lughaty.cloud',
+        'api.talker.lughaty.cloud',
     ]
 
 # التطبيقات المثبتة
 INSTALLED_APPS = [
-    'daphne', # يجب أن يكون في البداية لدعم ASGI و WebSockets
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,20 +54,20 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
-    
+
     # مكتبات خارجية
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
-    'channels',
-    
+
     # تطبيقات المشروع
     'translator',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # يخدم الملفات الثابتة مباشرة (لا خادم ويب منفصل لها على Hostinger)
     'corsheaders.middleware.CorsMiddleware', # يجب أن يكون في الأعلى
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -95,7 +96,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-ASGI_APPLICATION = 'core.asgi.application'
 
 # إعدادات قاعدة البيانات MySQL
 DATABASES = {
@@ -179,10 +179,9 @@ SIMPLE_JWT = {
 }
 
 # إعدادات CORS للسماح بالطلبات من الواجهة الأمامية
-# CORS configuration – allow Vercel frontend
 CORS_ALLOWED_ORIGINS = [
-    "https://ai-talker-five.vercel.app",
-    "https://ai-talker-backend.onrender.com",
+    "https://talker.lughaty.cloud",
+    "https://api.talker.lughaty.cloud",
 ]
 CORS_ALLOW_ALL_ORIGINS = False  # keep explicit list for production
 CORS_ALLOW_HEADERS = [
@@ -197,20 +196,11 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# CSRF trusted origins (needed for POST requests from Vercel)
+# CSRF trusted origins (needed for POST requests from the frontend)
 CSRF_TRUSTED_ORIGINS = [
-    "https://ai-talker-five.vercel.app",
-    "https://ai-talker-backend.onrender.com",
+    "https://talker.lughaty.cloud",
+    "https://api.talker.lughaty.cloud",
 ]
-
-
-# إعدادات Django Channels / WebSocket
-# InMemoryChannelLayer مناسب لـ Render (بدون Redis) ومستقر للاستخدام الفردي
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    }
-}
 
 # إعدادات الحماية
 SECURE_BROWSER_XSS_FILTER = True
@@ -267,6 +257,9 @@ STORAGES = {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
+        # التخزين الافتراضي (بدون ضغط/هاش خاص بـ whitenoise) — الضغط والتخديم
+        # يتوليان عبر WhiteNoiseMiddleware نفسه في MIDDLEWARE، وهذا يتجنب علّة
+        # في خطوة post_process الخاصة بتخزين whitenoise مع بعض ملفات admin الثابتة.
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }

@@ -13,6 +13,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from .models import User, Translation, SiteLike, Comment
 from .serializers import TranslationSerializer, CommentSerializer
 import logging
+import requests
 
 class TranslationViewSet(viewsets.ModelViewSet):
     """واجهة لإدارة الترجمات الخاصة بالمستخدم"""
@@ -306,35 +307,23 @@ class FileUploadTranslateView(views.APIView):
 
             elif file_name.endswith(('.png', '.jpg', '.jpeg', '.webp')):
                 try:
-                    import pytesseract
                     from PIL import Image
                     import io
                     import base64
-                    import shutil as _shutil
+                    from django.conf import settings as _settings
                     from .image_style import translate_image_preserving_style
 
-                    # تحديد مسار tesseract تلقائياً (Render يثبته في /usr/bin)
-                    _tess_path = _shutil.which('tesseract')
-                    if not _tess_path:
-                        import os as _os
-                        for _candidate in ['/usr/bin/tesseract', '/usr/local/bin/tesseract']:
-                            if _os.path.isfile(_candidate):
-                                _tess_path = _candidate
-                                break
-                    if _tess_path:
-                        pytesseract.pytesseract.tesseract_cmd = _tess_path
-                        logger.info('✅ Tesseract found at: %s', _tess_path)
-                    else:
-                        logger.error('❌ Tesseract binary not found')
+                    vision_api_key = getattr(_settings, 'GOOGLE_TRANSLATE_API_KEY', '')
+                    if not vision_api_key:
                         return Response(
-                            {'error': 'محرك التعرف على النصوص (Tesseract) غير مثبت على الخادم.'},
+                            {'error': 'خدمة استخراج نص الصور (Google Cloud Vision) غير مضبوطة على الخادم.'},
                             status=status.HTTP_503_SERVICE_UNAVAILABLE
                         )
 
                     image = Image.open(io.BytesIO(file_bytes)).convert('RGB')
                     file_bytes = None  # تحرير الذاكرة فوراً
 
-                    # تصغير الصورة لتوفير الذاكرة على Render
+                    # تصغير الصورة لتوفير الذاكرة ولتقليل حجم الطلب المرسل لـ Vision API
                     max_dim = 1600
                     w, h = image.size
                     if w > max_dim or h > max_dim:
@@ -342,20 +331,23 @@ class FileUploadTranslateView(views.APIView):
                         image = image.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
                         logger.info('🖼️ Resized image from %dx%d to %dx%d', w, h, int(w*ratio), int(h*ratio))
 
-                    # تحويل رمز اللغة إلى صيغة Tesseract
-                    tesseract_lang_map = {
-                        'ar': 'ara', 'en': 'eng', 'fr': 'fra', 'es': 'spa',
-                        'de': 'deu', 'ru': 'rus', 'zh-CN': 'chi_sim', 'zh-TW': 'chi_tra',
-                        'ja': 'jpn', 'ko': 'kor', 'it': 'ita', 'pt': 'por',
-                        'nl': 'nld', 'sv': 'swe', 'tr': 'tur', 'hi': 'hin',
-                        'auto': 'ara+eng',
+                    # تحويل رمز اللغة إلى صيغة Vision API (BCP-47 مبسّط)
+                    vision_lang_map = {
+                        'ar': 'ar', 'en': 'en', 'fr': 'fr', 'es': 'es',
+                        'de': 'de', 'ru': 'ru', 'zh-CN': 'zh', 'zh-TW': 'zh-Hant',
+                        'ja': 'ja', 'ko': 'ko', 'it': 'it', 'pt': 'pt',
+                        'nl': 'nl', 'sv': 'sv', 'tr': 'tr', 'hi': 'hi',
                     }
-                    tess_lang = tesseract_lang_map.get(safe_source, 'ara+eng')
+                    lang_hints = [vision_lang_map[safe_source]] if safe_source in vision_lang_map else None
+
+                    resized_buf = io.BytesIO()
+                    image.save(resized_buf, format='PNG')
+                    image_bytes_for_vision = resized_buf.getvalue()
 
                     # استخراج النص وترجمته مع إعادة رسمه على نفس مكانه في الصورة
                     # للحفاظ على شكل وستايل الصورة الأصلية (بدلاً من نص منفصل فقط)
                     extracted_text, translated_text, stylized_image = translate_image_preserving_style(
-                        image, tess_lang, safe_target, translator
+                        image, image_bytes_for_vision, lang_hints, safe_target, translator, vision_api_key
                     )
                     del image
 
@@ -370,8 +362,6 @@ class FileUploadTranslateView(views.APIView):
 
                     check_timeout()
 
-                except ImportError:
-                    return Response({'error': 'مكتبة pytesseract غير مثبتة في الخادم.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 except Exception as e:
                     logger.error('OCR error: %s', str(e))
                     return Response({'error': f'خطأ في معالجة الصورة: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -432,6 +422,8 @@ class SpeechToTextView(views.APIView):
     throttle_scope = 'stt'
 
     def post(self, request):
+        from django.conf import settings
+
         logger = logging.getLogger(__name__)
         audio_file = request.FILES.get('audio')
         language = request.data.get('language') or 'ar-SA'
@@ -443,45 +435,116 @@ class SpeechToTextView(views.APIView):
         if audio_file.size > max_audio_size:
             return Response({'error': 'حجم التسجيل الصوتي كبير جداً.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        import os
-        import tempfile
-        import speech_recognition as sr
-        from pydub import AudioSegment
+        api_key = getattr(settings, 'OPENAI_API_KEY', '')
+        if not api_key:
+            return Response({'error': 'خدمة التعرف الصوتي غير مضبوطة على الخادم.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        src_path = None
-        wav_path = None
         try:
-            suffix = os.path.splitext(audio_file.name or 'audio.webm')[1] or '.webm'
-            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as src_f:
-                for chunk in audio_file.chunks():
-                    src_f.write(chunk)
-                src_path = src_f.name
-
-            wav_path = src_path + '.wav'
-            AudioSegment.from_file(src_path).set_channels(1).set_frame_rate(16000).export(wav_path, format='wav')
-
-            recognizer = sr.Recognizer()
-            with sr.AudioFile(wav_path) as source:
-                audio_data = recognizer.record(source)
-
-            text = recognizer.recognize_google(audio_data, language=language)
+            response = requests.post(
+                'https://api.openai.com/v1/audio/transcriptions',
+                headers={'Authorization': f'Bearer {api_key}'},
+                # OpenAI Whisper يقبل ملف الصوت مباشرة (webm/ogg/mp3/wav...) دون
+                # أي تحويل محلي، فلا حاجة لـ ffmpeg هنا كما كان الحال سابقاً.
+                files={'file': (audio_file.name or 'audio.webm', audio_file.read(), audio_file.content_type or 'application/octet-stream')},
+                data={
+                    'model': 'whisper-1',
+                    'language': (language or 'ar').split('-')[0],
+                },
+                timeout=30,
+            )
+            response.raise_for_status()
+            text = (response.json().get('text') or '').strip()
+            if not text:
+                return Response({'error': 'لم يتم التعرف على أي كلام في التسجيل. حاول التحدث بوضوح أكبر.'}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'text': text}, status=status.HTTP_200_OK)
-
-        except sr.UnknownValueError:
-            return Response({'error': 'لم يتم التعرف على أي كلام في التسجيل. حاول التحدث بوضوح أكبر.'}, status=status.HTTP_400_BAD_REQUEST)
-        except sr.RequestError as e:
+        except requests.HTTPError as e:
             logger.error('STT service error: %s', str(e))
             return Response({'error': 'تعذّر الوصول لخدمة التعرف الصوتي حالياً. حاول لاحقاً.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception as e:
             logger.error('STT error: %s', str(e))
             return Response({'error': f'حدث خطأ أثناء تحويل الصوت إلى نص: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        finally:
-            for p in (src_path, wav_path):
-                if p and os.path.exists(p):
-                    try:
-                        os.remove(p)
-                    except OSError:
-                        pass
+
+
+class LiveTranslateView(views.APIView):
+    """واجهة الترجمة الفورية (نص لنص + صوت الناتج)، بديل HTTP لاتصال WebSocket
+    السابق (translator/consumers.py، الذي أُزيل مع إزالة Channels/Daphne لأن
+    الاستضافة المشتركة لا تدعم اتصالات WebSocket الدائمة). كل تبادل هو رسالة
+    واحدة مستقلة أصلاً (لا بث صوتي متواصل)، فتحويلها لطلب HTTP عادي لا يفقد
+    أي وظيفة."""
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'stt'
+
+    def post(self, request):
+        source_lang = request.data.get('source_lang', 'ar')
+        target_lang = request.data.get('target_lang', 'en')
+        text = request.data.get('text', '')
+        mode = request.data.get('mode', 'replace')
+
+        from .translate_utils import ResilientTranslator
+
+        def map_lang(lang):
+            """تحويل رموز اللغات المختلفة إلى رموز مدعومة من المترجم"""
+            if not lang:
+                return 'auto'
+            lang_lower = str(lang).strip().lower()
+
+            if lang_lower in ['zh', 'zh-cn', 'chinese', 'chinese (simplified)', 'zh-hans', 'zh-chs']:
+                return 'zh-CN'
+            if lang_lower in ['zh-tw', 'chinese (traditional)', 'zh-hant', 'zh-cht']:
+                return 'zh-TW'
+            if lang_lower.startswith('ar-') or lang_lower == 'ar':
+                return 'ar'
+            if lang_lower in ['pt-br', 'pt_br', 'portuguese (brazil)']:
+                return 'pt-BR'
+            if lang_lower in ['pt-pt', 'pt_pt', 'portuguese (portugal)']:
+                return 'pt'
+            return str(lang).strip().replace('_', '-')
+
+        src_lang = map_lang(source_lang)
+        tgt_lang = map_lang(target_lang)
+        if src_lang == 'zh':
+            src_lang = 'zh-CN'
+        if tgt_lang == 'zh':
+            tgt_lang = 'zh-CN'
+
+        try:
+            translated_text = ResilientTranslator(source=src_lang, target=tgt_lang).translate(text)
+        except Exception as e:
+            return Response({
+                'original': text,
+                'source_lang': source_lang,
+                'target_lang': target_lang,
+                'mode': mode,
+                'status': 'error',
+                'message': str(e),
+            }, status=status.HTTP_200_OK)
+
+        audio_b64 = ""
+        try:
+            from gtts import gTTS
+            import base64
+            import io
+            tts_lang = tgt_lang
+            if tgt_lang == 'zh':
+                tts_lang = 'zh-CN'
+            tts = gTTS(text=translated_text, lang=tts_lang)
+            fp = io.BytesIO()
+            tts.write_to_fp(fp)
+            fp.seek(0)
+            audio_b64 = base64.b64encode(fp.read()).decode('utf-8')
+        except Exception as tts_e:
+            logging.getLogger(__name__).warning('TTS Error: %s', tts_e)
+
+        return Response({
+            'original': text,
+            'translated': translated_text,
+            'audio_base64': audio_b64,
+            'source_lang': source_lang,
+            'target_lang': target_lang,
+            'mode': mode,
+            'status': 'success',
+        }, status=status.HTTP_200_OK)
 
 
 class HealthCheckView(views.APIView):
@@ -492,5 +555,4 @@ class HealthCheckView(views.APIView):
         return Response({
             'status': 'ok',
             'message': 'Backend HTTP server is reachable',
-            'ws_test_path': '/ws/translate/'
         })

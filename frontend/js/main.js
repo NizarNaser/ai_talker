@@ -2,14 +2,11 @@
 
 
  * AI Talker - Main JavaScript File
- * Handles UI interactions, API calls, WebSockets, and Speech Recognition.
+ * Handles UI interactions, API calls, and Speech Recognition.
  */
-// Global backend configuration
-const IS_LOCAL = window.location.hostname.includes('localhost');
-const BACKEND_HOST = IS_LOCAL ? 'localhost:8000' : 'ai-talker-backend.onrender.com';
-// Use HTTPS for production, HTTP for local dev
-const API_BASE = IS_LOCAL ? `${window.location.protocol}//${BACKEND_HOST}/api` : `https://${BACKEND_HOST}/api`;
-const WS_URL = IS_LOCAL ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/` : `wss://${BACKEND_HOST}/ws/translate/`;
+// الواجهة والـ API يعملان معاً كتطبيق Node واحد على نفس الدومين، فمسار
+// API نسبي (/api) بدل رابط مطلق لدومين فرعي منفصل.
+const API_BASE = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Remove Loader
@@ -452,13 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // In a full implementation, strings would be replaced here.
     }
 
-    // 4. API URLs (environment‑aware)
-    // Determine the correct backend host. When running locally, use the current host; otherwise use the Render backend host.
-    // const BACKEND_HOST = window.location.hostname.includes('localhost')
-    //     ? window.location.host
-    //     : 'ai-talker-backend.onrender.com';
-    // const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
-    // const WS_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${BACKEND_HOST}/ws/translate/`;
+    // 4. API URLs (environment‑aware) — see API_BASE at the top of the file.
 
     // 5. Toast Notifications
     window.showToast = function(message, type = 'success') {
@@ -566,10 +557,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchComments();
     }
 
-    // 8. Translation & WebSocket
-    // كل هذا القسم (الترجمة عبر WebSocket، الميكروفون، النطق، النسخ) خاص بواجهة
-    // المترجم الموجودة فقط في الصفحة الرئيسية؛ باقي الصفحات لا تحتوي هذه العناصر.
-    let ws;
+    // 8. Translation
+    // كل هذا القسم (الترجمة، الميكروفون، النطق، النسخ) خاص بواجهة المترجم
+    // الموجودة فقط في الصفحة الرئيسية؛ باقي الصفحات لا تحتوي هذه العناصر.
+    // الترجمة الفورية تُرسل كطلب HTTP عادي (/api/live-translate/) بدل اتصال
+    // WebSocket دائم، لأن كل تبادل هو رسالة مستقلة أصلاً (لا بث صوتي متواصل)
+    // ولأن الاستضافة الحالية لا تدعم اتصالات WebSocket الدائمة.
     const sourceText = document.getElementById('source-text');
     if (sourceText) {
     const targetText = document.getElementById('target-text');
@@ -579,120 +572,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetLang = document.getElementById('target-lang');
     const swapBtn = document.querySelector('.swap-btn');
 
-    // WebSocket state
-    let wsReconnectDelay = 2000; // يبدأ بـ 2 ثانية ويزداد تدريجياً
-    let wsReconnectTimer = null;
-    let wsPingTimer = null;
+    // يُستدعى برد الترجمة الفورية سواء من وضع الصندوقين الكلاسيكي أو من وضع
+    // المحادثة الحية (الذي له معالجة منفصلة عبر convHandleWsResult لأنه يعرض
+    // فقاعات دردشة بدل الصندوقين)
+    function handleTranslateResponse(data) {
+        if (data.mode && data.mode.indexOf('conv_') === 0) {
+            if (typeof convHandleWsResult === 'function') convHandleWsResult(data);
+            return;
+        }
 
-    function stopWsPing() {
-        if (wsPingTimer) { clearInterval(wsPingTimer); wsPingTimer = null; }
-    }
+        if(data.status === 'success') {
+            let isReverse = data.mode.includes('reverse');
+            let targetEl = isReverse ? sourceText : targetText;
+            let skeletonEl = isReverse ? null : targetSkeleton;
 
-    function startWsPing() {
-        stopWsPing();
-        // إرسال ping كل 20 ثانية لإبقاء الاتصال حياً على Render
-        wsPingTimer = setInterval(() => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'pong' }));
+            if (skeletonEl) {
+                skeletonEl.classList.add('hidden');
+                targetEl.classList.remove('hidden');
             }
-        }, 20000);
-    }
 
-    function connectWS() {
-        if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
-        ws = new WebSocket(WS_URL);
-        ws.onopen = () => {
-            console.log('WebSocket Connected');
-            wsReconnectDelay = 2000; // إعادة ضبط التأخير بعد الاتصال الناجح
-            startWsPing();
-        };
-        ws.onmessage = (e) => {
-            console.log("WebSocket Message Received:", e.data);
-            try {
-                const data = JSON.parse(e.data);
-                // تجاهل رسائل ping/connected من السيرفر
-                if (data.type === 'ping' || data.status === 'connected') return;
+            let textToSpeak = data.translated;
 
-                // ردود وضع المحادثة الحية لها معالجة منفصلة (فقاعات دردشة، ليس الصندوقين)
-                if (data.mode && data.mode.indexOf('conv_') === 0) {
-                    if (typeof convHandleWsResult === 'function') convHandleWsResult(data);
-                    return;
-                }
-
-                if(data.status === 'success') {
-                    let isReverse = data.mode.includes('reverse');
-                    let targetEl = isReverse ? sourceText : targetText;
-                    let skeletonEl = isReverse ? null : targetSkeleton;
-
-                    if (skeletonEl) {
-                        skeletonEl.classList.add('hidden');
-                        targetEl.classList.remove('hidden');
-                    }
-                    
-                    let textToSpeak = data.translated;
-                    
-                    if (data.mode.includes('append')) {
-                        targetEl.value += (targetEl.value ? '\n' : '') + data.translated;
-                    } else {
-                        targetEl.value = data.translated;
-                    }
-                    
-                    // Restore button spinner
-                    const translateBtn = document.getElementById('translate-btn');
-                    if (translateBtn) {
-                        const icon = translateBtn.querySelector('i');
-                        if (icon && translateBtn.dataset.originalIcon) {
-                            icon.className = translateBtn.dataset.originalIcon;
-                        }
-                        translateBtn.disabled = false;
-                    }
-
-                    if (data.audio_base64) {
-                        try {
-                            const audio = new Audio("data:audio/mp3;base64," + data.audio_base64);
-                            audio.play().catch(e => console.error("Audio playback error:", e));
-                        } catch (e) {
-                            console.error("Base64 Audio Error:", e);
-                        }
-                    } else {
-                        // Fallback to local SpeechSynthesis if server TTS failed
-                        let langToSpeak = data.target_lang;
-                        if (langToSpeak === 'ar' || langToSpeak.startsWith('ar-')) {
-                            langToSpeak = 'ar-SA';
-                        }
-                        
-                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                        utterance.lang = langToSpeak;
-                        
-                        const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.lang === langToSpeak || v.lang.startsWith(langToSpeak.split('-')[0]));
-                        if (voice) {
-                            utterance.voice = voice;
-                        }
-                        
-                        window.speechSynthesis.speak(utterance);
-                    }
-                    
-                } else if(data.status === 'error') {
-                    // Restore button spinner
-                    const translateBtn = document.getElementById('translate-btn');
-                    if (translateBtn) {
-                        const icon = translateBtn.querySelector('i');
-                        if (icon && translateBtn.dataset.originalIcon) {
-                            icon.className = translateBtn.dataset.originalIcon;
-                        }
-                        translateBtn.disabled = false;
-                    }
-                    showToast('خطأ من السيرفر: ' + data.message, 'error');
-                    targetSkeleton.classList.add('hidden');
-                    targetText.classList.remove('hidden');
-                }
-            } catch(err) {
-                console.error("Error parsing WS message", err);
+            if (data.mode.includes('append')) {
+                targetEl.value += (targetEl.value ? '\n' : '') + data.translated;
+            } else {
+                targetEl.value = data.translated;
             }
-        };
-        ws.onerror = (err) => {
-            console.error('WebSocket Error:', err);
+
             // Restore button spinner
             const translateBtn = document.getElementById('translate-btn');
             if (translateBtn) {
@@ -702,21 +608,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 translateBtn.disabled = false;
             }
-            showToast('فشل الاتصال بسيرفر الترجمة الفورية', 'error');
+
+            if (data.audio_base64) {
+                try {
+                    const audio = new Audio("data:audio/mp3;base64," + data.audio_base64);
+                    audio.play().catch(e => console.error("Audio playback error:", e));
+                } catch (e) {
+                    console.error("Base64 Audio Error:", e);
+                }
+            } else {
+                // Fallback to local SpeechSynthesis if server TTS failed
+                let langToSpeak = data.target_lang;
+                if (langToSpeak === 'ar' || langToSpeak.startsWith('ar-')) {
+                    langToSpeak = 'ar-SA';
+                }
+
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = langToSpeak;
+
+                const voices = window.speechSynthesis.getVoices();
+                const voice = voices.find(v => v.lang === langToSpeak || v.lang.startsWith(langToSpeak.split('-')[0]));
+                if (voice) {
+                    utterance.voice = voice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+        } else if(data.status === 'error') {
+            // Restore button spinner
+            const translateBtn = document.getElementById('translate-btn');
+            if (translateBtn) {
+                const icon = translateBtn.querySelector('i');
+                if (icon && translateBtn.dataset.originalIcon) {
+                    icon.className = translateBtn.dataset.originalIcon;
+                }
+                translateBtn.disabled = false;
+            }
+            showToast('خطأ من السيرفر: ' + data.message, 'error');
             targetSkeleton.classList.add('hidden');
             targetText.classList.remove('hidden');
-        };
-        ws.onclose = () => {
-            console.log(`WebSocket Disconnected. Reconnecting in ${wsReconnectDelay}ms...`);
-            stopWsPing();
-            // إعادة الاتصال مع زيادة تدريجية في وقت الانتظار (max 30s)
-            wsReconnectTimer = setTimeout(() => {
-                wsReconnectDelay = Math.min(wsReconnectDelay * 1.5, 30000);
-                connectWS();
-            }, wsReconnectDelay);
-        };
+        }
     }
-    connectWS();
+
+    async function requestLiveTranslate(payload) {
+        try {
+            const res = await fetch(`${API_BASE}/live-translate/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            handleTranslateResponse(data);
+        } catch (err) {
+            console.error('Live translate request error:', err);
+            handleTranslateResponse({ status: 'error', mode: payload.mode, message: 'فشل الاتصال بسيرفر الترجمة الفورية' });
+        }
+    }
 
     // Language Code Mapping: Convert UI language codes to supported backend codes
     function normalizeLanguageCode(langCode) {
@@ -793,16 +741,12 @@ document.addEventListener('DOMContentLoaded', () => {
             translateBtn.disabled = true;
         }
 
-        if(ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                text: textToTranslate,
-                source_lang: fromLang,
-                target_lang: toLang,
-                mode: mode
-            }));
-        } else {
-            showToast('جاري الاتصال بالخادم...', 'error');
-        }
+        requestLiveTranslate({
+            text: textToTranslate,
+            source_lang: fromLang,
+            target_lang: toLang,
+            mode: mode
+        });
     }
 
     translateBtn.addEventListener('click', () => {
@@ -1330,22 +1274,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             pendingConvCallbacks[mode] = { turn, myToken, originalText: text };
 
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    text: text,
-                    source_lang: normalizeLanguageCode(fromLang),
-                    target_lang: normalizeLanguageCode(toLang),
-                    mode: mode
-                }));
-            } else {
-                delete pendingConvCallbacks[mode];
-                showToast('فقد الاتصال بالخادم، حاول مرة أخرى...', 'error');
-                convSetStatus('فقد الاتصال بالخادم، حاول مرة أخرى...', false);
-                setTimeout(() => { if (convActive && myToken === convTurnToken) convStartTurn(turn); }, 1000);
-            }
+            requestLiveTranslate({
+                text: text,
+                source_lang: normalizeLanguageCode(fromLang),
+                target_lang: normalizeLanguageCode(toLang),
+                mode: mode
+            });
         }
 
-        // يُستدعى من معالج ws.onmessage الرئيسي عند وصول رد بخاصية mode تبدأ بـ conv_
+        // يُستدعى من handleTranslateResponse عند وصول رد بخاصية mode تبدأ بـ conv_
         function convHandleWsResult(data) {
             const pending = pendingConvCallbacks[data.mode];
             if (!pending) return;
@@ -1485,7 +1422,6 @@ function renderComments() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 4. API URLs (reused from above)
-    // const API_BASE = `${window.location.protocol}//${BACKEND_HOST}/api`;
 
     // Render comments
     renderComments();

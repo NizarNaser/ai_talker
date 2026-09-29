@@ -38,6 +38,9 @@ yarn-debug.log*
 yarn-error.log*
 .npm/
 
+# Django collectstatic output (يُنشأ عند النشر عبر collectstatic، لا يُحفظ في الريبو)
+staticfiles/
+
 # IDEs and OS files
 .vscode/
 .idea/
