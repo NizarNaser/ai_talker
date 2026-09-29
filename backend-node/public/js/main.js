@@ -1578,17 +1578,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleBtn = document.querySelector('.google-btn');
     const googleSigninContainer = document.getElementById('google-signin-container');
 
-    if (GOOGLE_CLIENT_ID && window.google && window.google.accounts && googleSigninContainer) {
+    if (googleBtn) googleBtn.classList.add('hidden');
+
+    let googleInitDone = false;
+    function initGoogleSignIn() {
+        if (googleInitDone || !GOOGLE_CLIENT_ID || !googleSigninContainer) return;
+        if (!(window.google && window.google.accounts && window.google.accounts.id)) return;
+        googleInitDone = true;
         google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredentialResponse });
         google.accounts.id.renderButton(googleSigninContainer, { theme: 'outline', size: 'large', width: 280 });
-    } else if (googleBtn) {
-        // لم يُضبط Client ID بعد على هذا الموقع: نعرض الزر القديم برسالة صريحة بدل تسجيل دخول وهمي
-        googleBtn.classList.remove('hidden');
-        googleBtn.addEventListener('click', () => {
-            const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
-            if (typeof window.showToast === 'function') window.showToast(isAr ? 'تسجيل الدخول عبر Google غير مُفعّل بعد على هذا الموقع.' : 'Google login is not enabled on this site yet.', 'error');
-        });
     }
+
+    // callback رسمي تستدعيه مكتبة GSI عند اكتمال تحميلها
+    window.onGoogleLibraryLoad = initGoogleSignIn;
+    initGoogleSignIn();
+
+    // احتياط: polling كل 200ms لمدة 10 ثوانٍ
+    let googleTries = 0;
+    const googleTimer = setInterval(() => {
+        initGoogleSignIn();
+        if (googleInitDone || ++googleTries >= 50) {
+            clearInterval(googleTimer);
+            if (!googleInitDone && googleBtn) {
+                googleBtn.classList.remove('hidden');
+                googleBtn.addEventListener('click', () => {
+                    const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
+                    window.showToast && window.showToast(isAr ? 'تعذّر تحميل خدمة Google، حدّث الصفحة.' : 'Could not load Google, please refresh.', 'error');
+                });
+            }
+        }
+    }, 200);
 
     // Contact form
     const contactForm = document.getElementById('contact-form');
