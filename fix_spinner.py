@@ -1,6 +1,6 @@
 import re
 
-with open('frontend/js/main.js', 'r') as f:
+with open('backend-node/public/js/main.js', 'r') as f:
     content = f.read()
 
 # We need to change the translate button icon to a spinner when translating
@@ -84,5 +84,5 @@ with_this_4 = """        ws.onerror = (err) => {
 
 content = content.replace(replace_this_4, with_this_4)
 
-with open('frontend/js/main.js', 'w') as f:
+with open('backend-node/public/js/main.js', 'w') as f:
     f.write(content)

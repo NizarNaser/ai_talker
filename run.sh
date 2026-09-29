@@ -12,7 +12,7 @@ set -e
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/backend"
-FRONTEND_DIR="$ROOT_DIR/frontend"
+FRONTEND_DIR="$ROOT_DIR/backend-node/public"
 BACKEND_PORT="${BACKEND_PORT:-8003}"
 FRONTEND_PORT="${FRONTEND_PORT:-8004}"
 

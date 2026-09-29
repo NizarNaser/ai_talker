@@ -24,7 +24,7 @@ const apiRouter = require('./src/routes');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
+const FRONTEND_DIR = path.join(__dirname, 'public');
 const DB_RETRY_MS = 10000;
 
 app.set('trust proxy', 1);
@@ -46,9 +46,21 @@ app.get('/health', (req, res) => res.json({ status: 'ok', message: 'backend aliv
 
 app.use('/api', apiRouter);
 
-// الواجهة الأمامية الثابتة (نفس مجلد frontend/) تُخدَّم من نفس التطبيق على
-// نفس الدومين، بلا حاجة لخادم منفصل أو subdomain للـ API.
+// الواجهة الأمامية الثابتة (تعيش هنا داخل backend-node/public وليس في مجلد
+// منفصل بجذر المستودع، لأن Hostinger ينشر محتوى backend-node/ فقط ولا يمكن
+// اختيار جذر المستودع كمجلد نشر) تُخدَّم من نفس التطبيق على نفس الدومين،
+// بلا حاجة لخادم منفصل أو subdomain للـ API.
 app.use(express.static(FRONTEND_DIR));
+
+// أي طلب GET لا يطابق مساراً في /api ولا ملفاً ثابتاً موجوداً فعلاً (رابط
+// مباشر لصفحة داخلية، تحديث الصفحة على مسار غير جذر...) يُعاد توجيهه للصفحة
+// الرئيسية بدل إرجاع JSON 404 غير مفيد لزائر متصفح.
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(path.join(FRONTEND_DIR, 'index.html'));
+  }
+  next();
+});
 
 app.use((req, res) => {
   res.status(404).json({ error: 'المسار غير موجود' });

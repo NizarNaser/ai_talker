@@ -82,7 +82,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR.parent, 'frontend')], # ربط مجلد الواجهة الأمامية
+        'DIRS': [os.path.join(BASE_DIR.parent, 'backend-node', 'public')], # ربط مجلد الواجهة الأمامية
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -143,7 +143,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR.parent, 'frontend')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR.parent, 'backend-node', 'public')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -228,7 +228,7 @@ else:
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', EMAIL_HOST_USER or DEFAULT_FROM_EMAIL)
 
 # معرف عميل Google المستخدم للتحقق من رمز تسجيل الدخول عبر Google Identity Services
-# (نفس القيمة يجب وضعها في GOOGLE_CLIENT_ID داخل frontend/js/main.js)
+# (نفس القيمة يجب وضعها في GOOGLE_CLIENT_ID داخل backend-node/public/js/main.js)
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 
 # بريد إلكتروني يُرسَل مع طلبات خدمة MyMemory للترجمة الاحتياطية (translate_utils.py)؛

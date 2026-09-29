@@ -59,7 +59,7 @@ python manage.py runserver
 ```
 للواجهة الأمامية:
 ```bash
-cd frontend
+cd backend-node/public
 python3 -m http.server 8001
 # افتح http://localhost:8001
 ```
@@ -100,7 +100,7 @@ sudo apt-get install -y tesseract-ocr tesseract-ocr-ara tesseract-ocr-eng \
 4. احفظ، وانسخ **Client ID** الناتج (لا تحتاج Client Secret لهذا التدفق).
 5. ضع نفس القيمة في **مكانين**:
    - متغير البيئة `GOOGLE_CLIENT_ID` في `backend/.env` (وفي متغيرات بيئة Render للإنتاج).
-   - الثابت `GOOGLE_CLIENT_ID` في أعلى قسم "Google Login Logic" داخل `frontend/js/main.js`.
+   - الثابت `GOOGLE_CLIENT_ID` في أعلى قسم "Google Login Logic" داخل `backend-node/public/js/main.js`.
 
 بدون ضبط القيمة في الطرفين، يبقى زر "المتابعة باستخدام Google" ظاهراً لكنه يعرض رسالة صريحة بأن الميزة غير مفعّلة بعد، بدل تسجيل دخول وهمي.
 
@@ -160,13 +160,13 @@ Gmail لا يقبل كلمة مرور الحساب العادية للإرسال
 1. أنشئ حساباً على [Vercel](https://vercel.com/) بحساب GitHub.
 2. **Add New → Project**، استورد مستودعك.
 3. في إعدادات المشروع: **Root Directory** = `frontend`، **Framework Preset** = `Other`.
-4. تأكد أن `BACKEND_HOST` في `frontend/js/main.js` يشير لرابط Render الصحيح، وأن رابط Vercel مضاف في `CORS_ALLOWED_ORIGINS` و`CSRF_TRUSTED_ORIGINS` بـ `backend/core/settings.py`.
+4. تأكد أن `BACKEND_HOST` في `backend-node/public/js/main.js` يشير لرابط Render الصحيح، وأن رابط Vercel مضاف في `CORS_ALLOWED_ORIGINS` و`CSRF_TRUSTED_ORIGINS` بـ `backend/core/settings.py`.
 5. اضغط **Deploy**. ستحصل على رابط مثل `https://ai-talker-five.vercel.app`.
 
 ## 10. طريقة إضافة AdSense
 1. سجّل موقعك في [Google AdSense](https://www.google.com/adsense/).
 2. بعد القبول، ستحصل على سكريبتات الإعلانات.
-3. ستجد في `frontend/index.html` عناصر `<div class="ad-banner" data-ad-slot="...">` جاهزة كأماكن للإعلانات (رأسية 728×90، متجاوبة، ومستطيلة 336×280).
+3. ستجد في `backend-node/public/index.html` عناصر `<div class="ad-banner" data-ad-slot="...">` جاهزة كأماكن للإعلانات (رأسية 728×90، متجاوبة، ومستطيلة 336×280).
 4. استبدل محتواها بالشيفرة المقدمة من AdSense.
 
 ## 11. طريقة النسخ الاحتياطي
@@ -197,3 +197,5 @@ Gmail لا يقبل كلمة مرور الحساب العادية للإرسال
 - **الاختبارات**: مجموعة اختبارات آلية حقيقية (`backend/translator/tests.py`) تعمل دون اتصال إنترنت.
 - **الترجمة متعددة اللغات للواجهة**: استكمال جميع مفاتيح الترجمة الناقصة (الفوتر، المساحات الإعلانية، النوافذ المنبثقة) لكل اللغات السبع المدعومة في واجهة الموقع.
 - **تشغيل مبسّط**: سكريبت `run.sh` لتشغيل الباك اند والواجهة الأمامية معاً بأمر واحد.
+
+google ads :helpinbusiness.count@gmail.com
