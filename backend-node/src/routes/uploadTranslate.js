@@ -3,7 +3,7 @@ const multer = require('multer');
 const { ResilientTranslator } = require('../services/translateService');
 const { translateDocx } = require('../services/docxService');
 const { translatePdf } = require('../services/pdfService');
-const { translateImagePreservingStyle } = require('../services/visionService');
+const { translateImagePreservingStyle, ImageExtractionError } = require('../services/visionService');
 const { uploadRawFile } = require('../services/storageService');
 const { scopedLimiter } = require('../middleware/rateLimit');
 
@@ -83,15 +83,19 @@ router.post('/', scopedLimiter('upload'), upload.single('file'), async (req, res
     }
 
     if (/\.(png|jpe?g|webp)$/.test(fileName)) {
-      const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
-      if (!apiKey) {
-        return res.status(503).json({ error: 'خدمة استخراج نص الصور (Google Cloud Vision) غير مضبوطة على الخادم.' });
-      }
       const langHints = VISION_LANG_MAP[safeSource] ? [VISION_LANG_MAP[safeSource]] : null;
 
-      const { originalText, translatedText, stylizedImageBuffer } = await withTimeout(
-        translateImagePreservingStyle(fileObj.buffer, langHints, translator, apiKey), MAX_PROCESSING_MS
-      );
+      let originalText, translatedText, stylizedImageBuffer;
+      try {
+        ({ originalText, translatedText, stylizedImageBuffer } = await withTimeout(
+          translateImagePreservingStyle(fileObj.buffer, langHints, translator), MAX_PROCESSING_MS
+        ));
+      } catch (e) {
+        if (e instanceof ImageExtractionError) {
+          return res.status(503).json({ error: e.message });
+        }
+        throw e;
+      }
 
       if (!originalText) {
         return res.status(400).json({ error: 'لم يتم العثور على نص في الصورة. تأكد أن الصورة واضحة وتحتوي على نص مقروء.' });

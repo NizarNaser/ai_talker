@@ -42,7 +42,7 @@ npm start
   الذي كان بجذر المستودع، لأن Hostinger لا ينشر إلا محتوى `backend-node/`).
 - `src/models/` — نماذج Sequelize (User, Translation, Comment, SiteLike) فوق MySQL.
 - `src/routes/` — كل واجهات الـ API (auth، translations، comments، contact، upload-translate، speech-to-text، live-translate، admin).
-- `src/services/` — منطق الترجمة (4 طبقات fallback)، OCR الصور عبر Google Vision + إعادة الرسم، تحويل الصوت لنص عبر OpenAI Whisper، TTS، ترجمة docx/pdf، البريد، ورفع الملفات العامة إلى Cloudinary، وزرع مستخدم الأدمن.
+- `src/services/` — منطق الترجمة (4 طبقات fallback، OpenAI هو المفعّل فعلياً بلا مفتاح Google Cloud)، استخراج نص الصور عبر OpenAI Vision + إعادة الرسم، تحويل الصوت لنص عبر OpenAI Whisper، TTS، ترجمة docx/pdf، البريد، ورفع الملفات العامة إلى Cloudinary، وزرع مستخدم الأدمن.
 - `assets/fonts/` — خطوط Noto (Latin/Arabic/Devanagari/CJK) لإعادة رسم النص المترجم على الصور دون الاعتماد على خطوط النظام.
 - `scripts/` — `syncDb.js` و`seedAdmin.js` (للاستخدام اليدوي الاختياري؛ يحدثان تلقائياً عند إقلاع الخادم أصلاً).
 
@@ -88,8 +88,8 @@ npm start
    سحب المستودع عبر Git، واضبط "Startup file" = `server.js`.
 2. أضف كل المتغيرات من `.env.example` في إعدادات التطبيق على hPanel (بيانات
    MySQL الخاصة بـ Hostinger، `SECRET_KEY` عشوائي قوي، `OPENAI_API_KEY`،
-   `GOOGLE_TRANSLATE_API_KEY`، `CORS_ALLOWED_ORIGINS=https://talker.lughaty.cloud`،
-   وكذلك `ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD` لإنشاء حساب الأدمن تلقائياً).
+   `CORS_ALLOWED_ORIGINS=https://talker.lughaty.cloud`، وكذلك
+   `ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD` لإنشاء حساب الأدمن تلقائياً).
 3. شغّل `npm install` من داخل `backend-node/`.
 4. شغّل/أعد تشغيل التطبيق. لا حاجة لأي خطوة يدوية أخرى — الجداول وحساب
    الأدمن يُنشآن تلقائياً عند أول إقلاع ناجح للاتصال بقاعدة البيانات (راجع

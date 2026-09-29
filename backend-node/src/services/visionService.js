@@ -1,9 +1,10 @@
 /**
  * أدوات ترجمة الصور مع الحفاظ على نفس ستايل وتصميم الصورة الأصلية.
  *
- * الفكرة: نستخرج مواقع أسطر النص عبر Google Cloud Vision API، نترجم كل سطر،
- * ثم نمحو النص الأصلي (بتلوين مكانه بلون الخلفية المحيطة به) ونعيد رسم النص
- * المترجم في نفس المكان بنفس الحجم التقريبي ولون قريب من لون النص الأصلي.
+ * الفكرة: نستخرج مواقع أسطر النص عبر OpenAI Vision (بدل Google Cloud Vision،
+ * لإلغاء أي اعتماد على Google Cloud/حساب فوترة)، نترجم كل سطر، ثم نمحو النص
+ * الأصلي (بتلوين مكانه بلون الخلفية المحيطة به) ونعيد رسم النص المترجم في
+ * نفس المكان بنفس الحجم التقريبي ولون قريب من لون النص الأصلي.
  *
  * رسم النص يتم عبر @napi-rs/canvas (Skia + HarfBuzz)، الذي يشكّل النصوص
  * المعقّدة (العربية، الهندية...) ويحدّد اتجاهها تلقائياً عند الرسم، فلا
@@ -11,9 +12,10 @@
  */
 const axios = require('axios');
 const path = require('path');
+const sharp = require('sharp');
 const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 
-const VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MAX_LINES = 80;
 
 const FONTS_DIR = path.join(__dirname, '..', '..', 'assets', 'fonts');
@@ -100,66 +102,96 @@ function pickBackgroundAndTextColors(ctx, box) {
   return { background, textColor };
 }
 
-async function fetchVisionDocumentText(imageBuffer, apiKey, langHints) {
-  const payload = {
-    requests: [{
-      image: { content: imageBuffer.toString('base64') },
-      features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
-      imageContext: langHints && langHints.length ? { languageHints: langHints } : {},
-    }],
-  };
-  const response = await axios.post(VISION_API_URL, payload, { params: { key: apiKey }, timeout: 30000 });
-  const result = response.data.responses[0];
-  if (result.error) throw new Error(result.error.message || 'Vision API error');
-  return result.fullTextAnnotation || null;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
-function wordBox(word) {
-  const xs = word.boundingBox.vertices.map((v) => v.x || 0);
-  const ys = word.boundingBox.vertices.map((v) => v.y || 0);
-  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
-}
-
-function wordText(word) {
-  return (word.symbols || []).map((s) => s.text || '').join('');
-}
-
-function wordEndsLine(word) {
-  const symbols = word.symbols || [];
-  if (!symbols.length) return false;
-  const brk = symbols[symbols.length - 1]?.property?.detectedBreak?.type;
-  return brk === 'LINE_BREAK' || brk === 'EOL_SURE_SPACE';
-}
-
-// يجمّع كلمات Vision API إلى أسطر بالاعتماد على تجميع الفقرات وعلامات فواصل
-// الأسطر التي يرجعها Vision، مع حساب صندوق إحداثيات كل سطر.
-function groupWordsIntoLines(annotation) {
-  const lines = [];
-  if (!annotation) return lines;
-
-  for (const page of annotation.pages || []) {
-    for (const block of page.blocks || []) {
-      for (const paragraph of block.paragraphs || []) {
-        let words = [];
-        let box = null;
-        for (const word of paragraph.words || []) {
-          const text = wordText(word).trim();
-          if (text) {
-            words.push(text);
-            const [wl, wt, wr, wb] = wordBox(word);
-            box = box ? [Math.min(box[0], wl), Math.min(box[1], wt), Math.max(box[2], wr), Math.max(box[3], wb)] : [wl, wt, wr, wb];
-          }
-          if (wordEndsLine(word) && words.length) {
-            lines.push({ text: words.join(' '), box });
-            words = [];
-            box = null;
-          }
-        }
-        if (words.length) lines.push({ text: words.join(' '), box });
-      }
-    }
+/**
+ * يستخرج أسطر النص المرئي في الصورة عبر OpenAI Vision (بدون ترجمة أو تصحيح)،
+ * مع صندوق إحداثيات كل سطر بالبكسل. يرجع مصفوفة { text, box } حيث box هو
+ * [left, top, right, bottom] بالبكسل، أو null إن كان صندوق ذلك السطر غير
+ * صالح (يُحتفظ بالنص رغم ذلك ليظهر في النص المستخرج/المترجم النهائي).
+ */
+async function extractImageLinesWithOpenAI(imageBuffer, langHints) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY غير مضبوط على الخادم.');
   }
-  return lines;
+
+  const metadata = await sharp(imageBuffer).metadata();
+  const width = metadata.width || 0;
+  const height = metadata.height || 0;
+  if (!width || !height) {
+    throw new Error('تعذّر قراءة أبعاد الصورة.');
+  }
+  const format = metadata.format === 'jpg' ? 'jpeg' : (metadata.format || 'png');
+  const dataUrl = `data:image/${format};base64,${imageBuffer.toString('base64')}`;
+
+  const model = process.env.OPENAI_VISION_MODEL || 'gpt-4o-mini';
+  const langHintText = langHints && langHints.length
+    ? ` The text is likely written in: ${langHints.join(', ')}.`
+    : '';
+  const prompt = 'Detect every line of visible text in this image, in natural reading order. '
+    + 'For each line, extract its text EXACTLY as written — do not translate it and do not correct '
+    + 'spelling or grammar.' + langHintText + ' For each line also give its bounding box as RELATIVE '
+    + 'coordinates (numbers between 0 and 1) of the image width/height: x (left edge), y (top edge), '
+    + 'w (width), h (height).\n\n'
+    + 'Respond with ONLY a JSON object in exactly this shape, no other text:\n'
+    + '{"lines":[{"text":"...","box":{"x":0.12,"y":0.30,"w":0.40,"h":0.05}}]}\n'
+    + 'If there is no readable text in the image, respond with {"lines":[]}.';
+
+  const response = await axios.post(
+    OPENAI_API_URL,
+    {
+      model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ],
+      }],
+      response_format: { type: 'json_object' },
+      temperature: 0,
+    },
+    { headers: { Authorization: `Bearer ${apiKey}` }, timeout: 30000 }
+  );
+
+  const content = response.data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('رد فارغ من OpenAI Vision.');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch (e) {
+    throw new Error('تعذّر تفسير رد OpenAI Vision كـ JSON.');
+  }
+
+  const rawLines = Array.isArray(parsed.lines) ? parsed.lines : [];
+  const lines = [];
+  for (const raw of rawLines) {
+    const text = typeof raw?.text === 'string' ? raw.text.trim() : '';
+    if (!text) continue; // تجاهل أي سطر بلا نص
+
+    let box = null;
+    const b = raw?.box;
+    if (
+      b && typeof b.x === 'number' && typeof b.y === 'number'
+      && typeof b.w === 'number' && typeof b.h === 'number'
+      && b.w > 0 && b.h > 0
+    ) {
+      const left = clamp(b.x * width, 0, width);
+      const top = clamp(b.y * height, 0, height);
+      const right = clamp((b.x + b.w) * width, 0, width);
+      const bottom = clamp((b.y + b.h) * height, 0, height);
+      if (right > left && bottom > top) box = [left, top, right, bottom];
+    }
+    // صندوق غير صالح: يُتجاهل كصندوق لكن يبقى النص للناتج النصي النهائي.
+
+    lines.push({ text, box });
+  }
+
+  return lines.slice(0, MAX_LINES);
 }
 
 function translateLines(texts, translator) {
@@ -194,18 +226,30 @@ function fitFont(ctx, text, family, maxWidth, maxHeight) {
   return { size, metrics };
 }
 
+// يُرفع عند فشل استخراج نص الصورة (مفتاح OpenAI غير مضبوط أو فشل الطلب)،
+// ليميّزه المسار (route) عن أي خطأ آخر غير متوقع ويرجع رسالة عربية واضحة
+// بدل خطأ 500 عام.
+class ImageExtractionError extends Error {}
+
 /**
- * يستخرج نص الصورة عبر Google Cloud Vision API، يترجمه سطراً بسطر، ثم يعيد
- * رسم الترجمة في نفس أماكن النص الأصلي بنفس الألوان التقريبية.
+ * يستخرج نص الصورة عبر OpenAI Vision، يترجمه سطراً بسطر، ثم يعيد رسم الترجمة
+ * في نفس أماكن النص الأصلي بنفس الألوان التقريبية.
  *
  * يرجع { originalText, translatedText, stylizedImageBuffer } حيث
- * stylizedImageBuffer هو PNG buffer، أو null إذا لم يُعثر على أي نص.
+ * stylizedImageBuffer هو PNG buffer، أو null إذا لم يُعثر على أي نص، أو إذا
+ * لم يكن لأي سطر مستخرج صندوق إحداثيات صالح لإعادة الرسم.
  */
-async function translateImagePreservingStyle(imageBuffer, langHints, translator, apiKey) {
+async function translateImagePreservingStyle(imageBuffer, langHints, translator) {
   ensureFontsRegistered();
 
-  const annotation = await fetchVisionDocumentText(imageBuffer, apiKey, langHints);
-  const lines = groupWordsIntoLines(annotation).slice(0, MAX_LINES);
+  let lines;
+  try {
+    lines = await extractImageLinesWithOpenAI(imageBuffer, langHints);
+  } catch (e) {
+    console.error('OpenAI image text extraction failed:', e.message);
+    throw new ImageExtractionError('تعذّر استخراج النص من الصورة حالياً');
+  }
+
   if (!lines.length) return { originalText: '', translatedText: '', stylizedImageBuffer: null };
 
   const texts = lines.map((l) => l.text);
@@ -214,12 +258,22 @@ async function translateImagePreservingStyle(imageBuffer, langHints, translator,
     translations = texts.map((t, i) => translations[i] ?? t);
   }
 
+  const originalText = texts.join('\n');
+  const translatedText = translations.join('\n');
+
+  if (!lines.some((l) => l.box)) {
+    // لا صناديق صالحة لأي سطر: نرجع النص فقط بدون صورة معدّلة.
+    return { originalText, translatedText, stylizedImageBuffer: null };
+  }
+
   const image = await loadImage(imageBuffer);
   const canvas = createCanvas(image.width, image.height);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(image, 0, 0);
 
   for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].box) continue;
+
     const translated = translations[i] || lines[i].text;
     const [left, top, right, bottom] = lines[i].box;
     const pad = 2;
@@ -247,16 +301,13 @@ async function translateImagePreservingStyle(imageBuffer, langHints, translator,
     ctx.fillText(translated, x, y);
   }
 
-  return {
-    originalText: texts.join('\n'),
-    translatedText: translations.join('\n'),
-    stylizedImageBuffer: canvas.toBuffer('image/png'),
-  };
+  return { originalText, translatedText, stylizedImageBuffer: canvas.toBuffer('image/png') };
 }
 
 module.exports = {
   translateImagePreservingStyle,
-  groupWordsIntoLines,
+  ImageExtractionError,
+  extractImageLinesWithOpenAI,
   detectScript,
   fontForText,
   pickBackgroundAndTextColors,

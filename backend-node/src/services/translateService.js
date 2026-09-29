@@ -1,10 +1,11 @@
 /**
  * طبقة ترجمة موحّدة تُستخدم في كل أنحاء المشروع (الترجمة الفورية، ترجمة
  * الملفات والصور). أربع طبقات بالترتيب: Google Cloud Translation API الرسمي
- * والمدفوع (إن كان مفتاحه مضبوطاً)، ثم OpenAI API (مدفوع وموثوق)، ثم
- * GoogleTranslator المجاني (استخراج بيانات من صفحة الترجمة العامة، عرضة
- * للحظر/التقييد)، ثم MyMemory كخدمة مجانية أخيرة بديلة، بدل أن تتعطل
- * الترجمة بالكامل عند فشل أي طبقة.
+ * والمدفوع (اختياري تماماً، يُتخطّى بصمت إن لم يكن GOOGLE_TRANSLATE_API_KEY
+ * مضبوطاً — لا اعتماد فعلي على Google Cloud بدونه)، ثم OpenAI API (مدفوع
+ * وموثوق، الطبقة الفعلية الأولى في هذا المشروع)، ثم GoogleTranslator المجاني
+ * (استخراج بيانات من صفحة الترجمة العامة، عرضة للحظر/التقييد)، ثم MyMemory
+ * كخدمة مجانية أخيرة بديلة، بدل أن تتعطل الترجمة بالكامل عند فشل أي طبقة.
  */
 const axios = require('axios');
 
@@ -124,11 +125,16 @@ class ResilientTranslator {
   async translate(text) {
     if (!text || !text.trim()) return text;
 
-    try {
-      const result = await this.translateWithCloudApi(text);
-      if (result) return result;
-    } catch (e) {
-      console.warn('Google Cloud Translation API failed, falling back:', e.message);
+    // طبقة Google Cloud Translation اختيارية بالكامل: تُتخطّى بصمت (بلا أي
+    // طلب شبكة ولا سطر في السجل) إن لم يكن GOOGLE_TRANSLATE_API_KEY مضبوطاً،
+    // فلا يبقى أي اعتماد فعلي على Google Cloud بدونه.
+    if (process.env.GOOGLE_TRANSLATE_API_KEY) {
+      try {
+        const result = await this.translateWithCloudApi(text);
+        if (result) return result;
+      } catch (e) {
+        console.warn('Google Cloud Translation API failed, falling back:', e.message);
+      }
     }
 
     try {
