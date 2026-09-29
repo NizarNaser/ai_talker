@@ -60,14 +60,10 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Google AdSense Verification Code -->
+    <!-- Google AdSense: يكفي سكربت التحميل هذا؛ تفعيل الإعلانات نفسه يتم تلقائياً
+         عبر Auto Ads من لوحة تحكم AdSense، فاستدعاء enable_page_level_ads هنا
+         يدوياً كان يكرّر ما يفعله Auto Ads فيسبب تحذير AdSense في الـ console. -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8330110162521868" crossorigin="anonymous"></script>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({
-            google_ad_client: "ca-pub-8330110162521868",
-            enable_page_level_ads: true
-        });
-    </script>
 
     <!-- Google Identity Services (تسجيل الدخول عبر Google) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
