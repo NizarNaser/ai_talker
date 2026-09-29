@@ -1546,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Google Login Logic (Google Identity Services - تسجيل دخول حقيقي)
     // ضع هنا Client ID الخاص بمشروعك من Google Cloud Console (نفس القيمة الموضوعة
     // في متغير البيئة GOOGLE_CLIENT_ID على الباك اند). اتركه فارغاً لتعطيل الميزة مؤقتاً.
-    const GOOGLE_CLIENT_ID = '';
+    const GOOGLE_CLIENT_ID = '861665646536-etreonimofcattu7k5telhvcvnst2ht2.apps.googleusercontent.com';
 
     async function handleGoogleCredentialResponse(response) {
         const isAr = document.documentElement.lang !== 'en' && document.documentElement.lang !== 'fr';
