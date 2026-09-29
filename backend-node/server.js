@@ -41,6 +41,16 @@ app.use(helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
+// يسمح لسكربت Google Identity Services باستخدام FedCM (واجهة المتصفح الحديثة
+// لتسجيل الدخول الموحّد) بدل النافذة المنبثقة القديمة القائمة على postMessage،
+// التي تفشل بصمت (تُغلق النافذة بعد اختيار الحساب دون أي خطأ ظاهر، ودون إتمام
+// تسجيل الدخول) في المتصفحات التي تحظر الكوكيز من طرف ثالث. بدون هذا الرأس
+// يرفض المتصفح تفعيل FedCM حتى لو طلبه السكربت صراحةً.
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'identity-credentials-get=(self)');
+  next();
+});
+
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'https://talker.lughaty.cloud')
   .split(',').map((s) => s.trim()).filter(Boolean);
 app.use(cors({ origin: allowedOrigins, credentials: true }));

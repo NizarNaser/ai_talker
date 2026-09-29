@@ -1585,7 +1585,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (googleInitDone || !GOOGLE_CLIENT_ID || !googleSigninContainer) return;
         if (!(window.google && window.google.accounts && window.google.accounts.id)) return;
         googleInitDone = true;
-        google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredentialResponse });
+        // use_fedcm_for_button: يستخدم واجهة FedCM الحديثة في المتصفح بدل النافذة
+        // المنبثقة القديمة، التي كانت تفشل بصمت (تُغلق بعد اختيار الحساب دون أي
+        // خطأ ودون إكمال تسجيل الدخول) في المتصفحات التي تحظر كوكيز الطرف الثالث.
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse,
+            use_fedcm_for_button: true,
+        });
         google.accounts.id.renderButton(googleSigninContainer, { theme: 'outline', size: 'large', width: 280 });
     }
 
