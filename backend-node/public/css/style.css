@@ -589,6 +589,15 @@ textarea::placeholder {
 }
 
 /* Ads */
+/* Google Auto Ads تحقن <ins class="adsbygoogle"> في الصفحة ديناميكياً دون أن
+   تحجز لها مساحة مسبقاً، فيقفز المحتوى عند ظهورها فجأة (هذا السبب الرئيسي لارتفاع
+   CLS). هذا الحد الأدنى للارتفاع يجعل المتصفح يحجز مساحة فوراً عند إدراج العنصر،
+   قبل أن يحمّل جوجل الإعلان الفعلي ويضبط حجمه النهائي. */
+ins.adsbygoogle {
+    display: block;
+    min-height: 100px;
+}
+
 .ad-banner {
     background: rgba(128, 128, 128, 0.1);
     border: 1px dashed var(--text-muted);

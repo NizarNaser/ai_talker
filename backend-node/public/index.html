@@ -46,6 +46,12 @@
       "description": "منصة ترجمة فورية بالذكاء الاصطناعي"
     }
     </script>
+    <!-- Preconnect: يفتح الاتصال (DNS+TLS) مع خوادم الخطوط والأيقونات قبل أن تحتاجها
+         الصفحة فعلياً، فيقصر زمن أول حرف يظهر بالخط الصحيح ويقلّل قفزات النص. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
     <!-- Google Fonts: Cairo for Arabic, Inter for English -->
     <!-- محمّلة بدون حجب أول عرض للصفحة (preload+swap): إن كانت خدمات جوجل بطيئة أو
          غير متاحة على شبكة/جهاز الزائر، تظهر الصفحة بالخط الاحتياطي بدل أن تتجمّد. -->
@@ -126,7 +132,7 @@
 
     <section class="hero" aria-labelledby="hero-title">
         <div class="container">
-            <h2 id="hero-title" class="animate-up" data-i18n="hero_title">الترجمة الفورية لم تكن يوماً بهذه السهولة</h2>
+            <h2 id="hero-title" data-i18n="hero_title">الترجمة الفورية لم تكن يوماً بهذه السهولة</h2>
             <p class="animate-up delay-1" data-i18n="hero_subtitle">تحدث، اكتب، وترجم لأكثر من 100 لغة وما يزيد عن 20 لهجة عربية بدقة الذكاء الاصطناعي.</p>
             <a class="btn-primary android-download-btn animate-up delay-2"
                href="https://github.com/NizarNaser/ai_talker/releases/download/android-v1.0.1/app-release-signed.apk"
