@@ -510,6 +510,10 @@ button {
     border-radius: 8px;
     font-family: inherit;
     font-weight: 600;
+    /* line-height ثابت (بدل "normal" الافتراضي) حتى لا يتغيّر ارتفاع الصندوق
+       بين خط النظام الاحتياطي وخط Cairo، فلكل خط مقاييس سطر (ascent/descent)
+       مختلفة تؤثر على الارتفاع المحسوب عند "normal". */
+    line-height: 1.5;
 }
 
 textarea {
