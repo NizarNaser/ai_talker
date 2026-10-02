@@ -53,10 +53,12 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
     <!-- Google Fonts: Cairo for Arabic, Inter for English -->
-    <!-- محمّلة بدون حجب أول عرض للصفحة (preload+swap): إن كانت خدمات جوجل بطيئة أو
-         غير متاحة على شبكة/جهاز الزائر، تظهر الصفحة بالخط الاحتياطي بدل أن تتجمّد. -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=optional"></noscript>
+    <!-- رابط عادي (يحجب الرسم الأول قليلاً) بدل preload+onload: مع preload كان تفعيل
+         ورقة الأنماط يتأخر حتى بعد أول رسم للصفحة، فتصل قواعد @font-face متأخرة جداً
+         بحيث تفوت مهلة display=optional القصيرة وتظهر النتيجة متضاربة بين زيارة وأخرى
+         (أحياناً Cairo من البداية، وأحياناً قفزة). تحميله بشكل متزامن مع preconnect
+         مسبق يضمن أن الخط جاهز غالباً قبل أول رسم، فتختفي القفزة بثبات. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=optional">
 
     <!-- FontAwesome for Icons -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
