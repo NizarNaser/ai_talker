@@ -46,19 +46,13 @@
       "description": "منصة ترجمة فورية بالذكاء الاصطناعي"
     }
     </script>
-    <!-- Preconnect: يفتح الاتصال (DNS+TLS) مع خوادم الخطوط والأيقونات قبل أن تحتاجها
-         الصفحة فعلياً، فيقصر زمن أول حرف يظهر بالخط الصحيح ويقلّل قفزات النص. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 
-    <!-- Google Fonts: Cairo for Arabic, Inter for English -->
-    <!-- رابط عادي (يحجب الرسم الأول قليلاً) بدل preload+onload: مع preload كان تفعيل
-         ورقة الأنماط يتأخر حتى بعد أول رسم للصفحة، فتصل قواعد @font-face متأخرة جداً
-         بحيث تفوت مهلة display=optional القصيرة وتظهر النتيجة متضاربة بين زيارة وأخرى
-         (أحياناً Cairo من البداية، وأحياناً قفزة). تحميله بشكل متزامن مع preconnect
-         مسبق يضمن أن الخط جاهز غالباً قبل أول رسم، فتختفي القفزة بثبات. -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;800&family=Inter:wght@400;600&display=optional">
+    <!-- Cairo/Inter: مستضافة محلياً الآن (css/style.css) بدل Google Fonts، فلا حاجة
+         لأي اتصال خارجي لها. preload لنسخة Cairo (عربي ولاتيني) فقط لأنها الخط
+         الظاهر فوراً في أعلى الصفحة؛ Inter تُحمَّل عند الحاجة الفعلية لها فقط. -->
+    <link rel="preload" href="fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/cairo-latin.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- FontAwesome for Icons -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
