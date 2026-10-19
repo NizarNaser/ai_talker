@@ -786,6 +786,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // في متصفح Chrome، لذلك نعرض لها تنبيهاً واضحاً بدل الفشل الصامت.
         const isHuaweiOrNoGMS = /huawei|honor|harmonyos|hmscore/i.test(navigator.userAgent);
 
+        // متصفح كروم على هواتف هواوي لا يذكر هواوي في الـ user agent (مثلاً "Android 10; CDY-NX9A")،
+        // فنكتشف تعطّل التعرف الصوتي عملياً عبر مهلة الأمان، ونتذكر ذلك حتى لا يخسر المستخدم
+        // أول 5 ثوانٍ من كلامه في كل مرة يضغط فيها على الميكروفون.
+        const WEB_SPEECH_BROKEN_KEY = 'webSpeechBroken';
+        let webSpeechBroken = isHuaweiOrNoGMS;
+        try { if (localStorage.getItem(WEB_SPEECH_BROKEN_KEY) === '1') webSpeechBroken = true; } catch (e) {}
+        function markWebSpeechBroken() {
+            webSpeechBroken = true;
+            try { localStorage.setItem(WEB_SPEECH_BROKEN_KEY, '1'); } catch (e) {}
+        }
+
         // طلب صلاحية الميكروفون صراحةً عبر getUserMedia أولاً: هذا يجبر المتصفح على
         // إظهار نافذة طلب الصلاحية بشكل موثوق (بعض متصفحات أندرويد لا تُظهرها بشكل
         // صحيح إن استدعيت SpeechRecognition.start() مباشرة)، ويميّز بوضوح بين
@@ -816,12 +827,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // عبر getUserMedia/MediaRecorder (يعمل على أي جهاز) ونرسله للخادم ليقوم
         // هو بطلب التفريغ النصي، فلا علاقة للأمر بوجود خدمات جوجل على جهاز المستخدم.
         let activeMediaRecorder = null;
+        let activeRecorderBtn = null;
+        // يمنع بدء تسجيلين معاً إن ضغط المستخدم مرتين قبل أن يمنح المتصفح الميكروفون
+        let recorderStarting = false;
 
         async function startServerRecording(btnElement, langCode, onFinalTranscript) {
-            if (activeMediaRecorder) {
-                activeMediaRecorder.stop();
-                return;
-            }
+            if (activeMediaRecorder || recorderStarting) return;
+            recorderStarting = true;
 
             let stream;
             try {
@@ -835,6 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     showToast('تعذّر الوصول إلى الميكروفون: ' + err.message, 'error');
                 }
+                recorderStarting = false;
                 return;
             }
 
@@ -852,7 +865,10 @@ document.addEventListener('DOMContentLoaded', () => {
             recorder.onstop = async () => {
                 stream.getTracks().forEach(track => track.stop());
                 btnElement.classList.remove('recording');
-                activeMediaRecorder = null;
+                if (activeMediaRecorder === recorder) {
+                    activeMediaRecorder = null;
+                    activeRecorderBtn = null;
+                }
 
                 if (chunks.length === 0) {
                     showToast('لم يتم التقاط أي صوت.', 'error');
@@ -890,14 +906,21 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             activeMediaRecorder = recorder;
+            activeRecorderBtn = btnElement;
+            recorderStarting = false;
             recorder.start();
         }
 
         async function startListening(btnElement, langCode, onFinalTranscript) {
-            // Stop any existing recognition
+            // Stop any existing recognition (abort: we don't want its pending result
+            // landing in the other box, and its handlers must not touch the new session)
             if (activeRecognition) {
-                try { activeRecognition.stop(); } catch(e) {}
+                const previous = activeRecognition;
+                previous.onresult = previous.onerror = previous.onend = null;
+                try { previous.abort(); } catch(e) {}
                 if (activeBtn) activeBtn.classList.remove('recording');
+                activeRecognition = null;
+                activeBtn = null;
             }
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -938,6 +961,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { recognition.abort(); } catch (e) {}
             }, 5000);
 
+            // التقاط أي صوت يثبت أن الخدمة تعمل؛ فلا نقطع كلاماً طويلاً قبل وصول النتيجة النهائية
+            recognition.onsoundstart = recognition.onspeechstart = () => clearTimeout(watchdogTimer);
+
             recognition.onstart = () => {
                 console.log("Speech recognition started.");
                 btnElement.classList.add('recording');
@@ -974,8 +1000,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 else errorMsg += ': ' + event.error;
                 showToast(errorMsg, 'error');
                 btnElement.classList.remove('recording');
-                activeRecognition = null;
-                activeBtn = null;
+                if (activeRecognition === recognition) {
+                    activeRecognition = null;
+                    activeBtn = null;
+                }
                 hasSpeech = true; // Prevent duplicate toast in onend
             };
 
@@ -983,10 +1011,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearTimeout(watchdogTimer);
                 console.log("Speech recognition ended.");
                 btnElement.classList.remove('recording');
-                activeRecognition = null;
-                activeBtn = null;
+                if (activeRecognition === recognition) {
+                    activeRecognition = null;
+                    activeBtn = null;
+                }
 
                 if (watchdogFired) {
+                    markWebSpeechBroken();
                     showToast('التعرف الصوتي في هذا المتصفح غير متاح، جاري التحويل للتسجيل عبر الخادم...', 'success');
                     startServerRecording(btnElement, langCode, onFinalTranscript);
                     return;
@@ -1009,23 +1040,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // زر ميكروفون واحد فقط يعمل في أي لحظة: الضغط على نفس الزر يوقفه، والضغط على
+        // الزر الآخر يوقف الأول (فيُترجم ما سُجّل فيه) ثم يبدأ التسجيل للزر الجديد.
+        function handleMicClick(btnElement, getLang, onFinalTranscript) {
+            if (activeMediaRecorder) {
+                const wasSameBtn = activeRecorderBtn === btnElement;
+                activeMediaRecorder.stop();
+                activeMediaRecorder = null;
+                activeRecorderBtn = null;
+                if (wasSameBtn) return;
+            }
+            if (activeRecognition) {
+                const wasSameBtn = activeBtn === btnElement;
+                if (wasSameBtn) {
+                    activeRecognition.stop();
+                    return;
+                }
+            }
+            if (webSpeechBroken) {
+                startServerRecording(btnElement, getLang(), onFinalTranscript);
+            } else {
+                startListening(btnElement, getLang(), onFinalTranscript);
+            }
+        }
+
         if (micBtn) {
             micBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log("micBtn clicked!");
-                if (isHuaweiOrNoGMS) {
-                    startServerRecording(micBtn, sourceLang.value, (transcript) => {
-                        sourceText.value += (sourceText.value ? '\n' : '') + transcript;
-                        sendForTranslation(transcript, sourceLang.value, targetLang.value, 'append');
-                    });
-                    return;
-                }
-                // If it's already recording this button, stop it
-                if (activeBtn === micBtn && activeRecognition) {
-                    activeRecognition.stop();
-                    return;
-                }
-                startListening(micBtn, sourceLang.value, (transcript) => {
+                handleMicClick(micBtn, () => sourceLang.value, (transcript) => {
                     sourceText.value += (sourceText.value ? '\n' : '') + transcript;
                     sendForTranslation(transcript, sourceLang.value, targetLang.value, 'append');
                 });
@@ -1036,19 +1079,7 @@ document.addEventListener('DOMContentLoaded', () => {
             targetMicBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log("targetMicBtn clicked!");
-                if (isHuaweiOrNoGMS) {
-                    startServerRecording(targetMicBtn, targetLang.value, (transcript) => {
-                        targetText.value += (targetText.value ? '\n' : '') + transcript;
-                        sendForTranslation(transcript, targetLang.value, sourceLang.value, 'append_reverse');
-                    });
-                    return;
-                }
-                // If it's already recording this button, stop it
-                if (activeBtn === targetMicBtn && activeRecognition) {
-                    activeRecognition.stop();
-                    return;
-                }
-                startListening(targetMicBtn, targetLang.value, (transcript) => {
+                handleMicClick(targetMicBtn, () => targetLang.value, (transcript) => {
                     targetText.value += (targetText.value ? '\n' : '') + transcript;
                     sendForTranslation(transcript, targetLang.value, sourceLang.value, 'append_reverse');
                 });
