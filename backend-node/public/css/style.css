@@ -568,6 +568,9 @@ textarea {
 
 textarea::placeholder {
     color: var(--text-muted);
+    /* الشرح متعدد الأسطر (طريقة استخدام الميكروفون) أصغر قليلاً من نص المستخدم حتى يتسع للمربع */
+    font-size: 0.95rem;
+    line-height: 1.7;
 }
 
 .controls {
@@ -1102,4 +1105,82 @@ footer {
 }
 [dir="ltr"] .input-group input {
     padding: 0.8rem 2.5rem 0.8rem 1rem;
+}
+
+/* زر وضع المحادثة المباشرة: دعوة واضحة للفعل بتدرّج لوني وتوهج نابض */
+.btn-conversation {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.9rem 2.2rem;
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35);
+    animation: conv-cta-glow 2.4s ease-in-out infinite;
+    transition: var(--transition);
+}
+
+.btn-conversation i {
+    font-size: 1.3rem;
+}
+
+/* لمعة تعبر الزر كل بضع ثوانٍ */
+.btn-conversation::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transform: skewX(-20deg);
+    animation: conv-cta-shine 3.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.btn-conversation:hover,
+.btn-conversation:focus-visible {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
+}
+
+.btn-conversation:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 3px;
+}
+
+.conversation-hint {
+    margin-top: 0.6rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@keyframes conv-cta-glow {
+    0%, 100% { box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35), 0 0 0 0 rgba(99, 102, 241, 0.45); }
+    50% { box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35), 0 0 0 12px rgba(99, 102, 241, 0); }
+}
+
+@keyframes conv-cta-shine {
+    0%, 60% { left: -75%; }
+    100% { left: 125%; }
+}
+
+@media (max-width: 480px) {
+    .btn-conversation {
+        width: 100%;
+        justify-content: center;
+        padding: 0.9rem 1.2rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-conversation,
+    .btn-conversation::after {
+        animation: none;
+    }
 }

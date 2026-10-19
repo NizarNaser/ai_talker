@@ -58,7 +58,7 @@
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
 
@@ -191,7 +191,7 @@
                         </select>
                     </div>
                     <label for="source-text" class="sr-only" style="display:none;">النص المراد ترجمته</label>
-                    <textarea id="source-text" aria-label="مربع النص المراد ترجمته" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا أو اضغط على الميكروفون للتحدث..."></textarea>
+                    <textarea id="source-text" aria-label="مربع النص المراد ترجمته" data-i18n-placeholder="source_placeholder" placeholder="اكتب النص هنا، أو تحدّث بالميكروفون 🎤&#10;1. اضغط على الميكروفون وابدأ الكلام&#10;2. اضغط عليه مرة أخرى عند الانتهاء لتظهر الترجمة"></textarea>
                     <div class="controls" style="flex-wrap: wrap; gap: 10px;">
                         <button class="icon-btn mic-btn" title="تسجيل صوتي" aria-label="بدء التسجيل الصوتي"><i class="fa-solid fa-microphone" aria-hidden="true"></i></button>
                         <input type="file" id="file-upload" accept="image/*,.pdf,.docx" style="display: none;" aria-label="تحميل ملف للترجمة">
@@ -240,7 +240,7 @@
                     </div>
                     <div class="skeleton-text hidden" id="target-skeleton" aria-hidden="true"></div>
                     <label for="target-text" class="sr-only" style="display:none;">النص المترجم</label>
-                    <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا..." aria-label="مربع النص المترجم القراءة فقط"></textarea>
+                    <textarea id="target-text" readonly data-i18n-placeholder="target_placeholder" placeholder="ستظهر الترجمة هنا...&#10;🎤 ميكروفون هذا المربع للطرف الآخر: يضغط عليه ويتكلم بلغته، ثم يضغط مرة أخرى فتظهر ترجمة كلامه في المربع الأول" aria-label="مربع النص المترجم القراءة فقط"></textarea>
                     <div id="translated-image-wrap" class="translated-image-wrap hidden">
                         <img id="translated-image" alt="الصورة مترجمة بنفس تصميمها الأصلي">
                         <button class="btn-secondary" id="download-translated-image-btn" type="button"><i class="fa-solid fa-download" aria-hidden="true"></i> <span data-i18n="download_image">تحميل الصورة المترجمة</span></button>
@@ -263,7 +263,8 @@
             </div>
             
             <div class="conversation-mode text-center mt-3">
-                <button class="btn-secondary" onclick="openConversationModal()"><i class="fa-solid fa-people-arrows"></i> <span data-i18n="live_conversation">وضع المحادثة المباشرة</span></button>
+                <button class="btn-conversation" onclick="openConversationModal()"><i class="fa-solid fa-people-arrows" aria-hidden="true"></i> <span data-i18n="live_conversation">وضع المحادثة المباشرة</span></button>
+                <p class="conversation-hint" data-i18n="live_conversation_hint">تحدّثا بالتناوب دون الضغط على أي زر</p>
             </div>
         </div>
     </section>
@@ -425,7 +426,7 @@
         <button id="install-banner-action" class="btn-primary install-banner-btn">تثبيت</button>
     </div>
 
-    <script src="js/main.js?v=4"></script>
+    <script src="js/main.js?v=5"></script>
     <script src="js/install-prompt.js"></script>
 </body>
 </html>
