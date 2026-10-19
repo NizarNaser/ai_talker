@@ -1,201 +1,163 @@
 # AI Talker - منصة الترجمة الفورية بالذكاء الاصطناعي
 
+- **الموقع:** https://talker.lughaty.cloud/
+- **الاستضافة:** خادم Hostinger VPS (Ubuntu + nginx + Node.js عبر pm2)
+- **الكود:** https://github.com/NizarNaser/ai_talker (فرع `main`)
+
 ## 1. شرح المشروع بالكامل
-مشروع **AI Talker** هو منصة ويب احترافية توفر خدمات الترجمة الفورية باستخدام أحدث تقنيات الذكاء الاصطناعي. تتيح المنصة للمستخدمين ترجمة الصوت والنصوص بشكل مباشر ودقيق مع دعم واسع النطاق للغات العالمية واللهجات المحلية والعربية المختلفة، بالإضافة إلى:
+مشروع **AI Talker** هو منصة ويب احترافية توفر خدمات الترجمة الفورية باستخدام أحدث تقنيات الذكاء الاصطناعي. تتيح المنصة للمستخدمين ترجمة الصوت والنصوص بشكل مباشر ودقيق مع دعم واسع النطاق للغات العالمية واللهجات العربية، بالإضافة إلى:
 
-- **ترجمة الملفات والمستندات** (Word، PDF) مع الحفاظ على التنسيق الأصلي.
-- **ترجمة الصور مع الحفاظ على ستايلها الأصلي**: يستخرج النظام النص من الصورة عبر Tesseract OCR، يترجمه، ثم يعيد رسم الترجمة في نفس مكان النص الأصلي بنفس الألوان التقريبية، بدل إرجاع نص منفصل فقط.
-- **التقاط صورة مباشرة من كاميرا الهاتف** لترجمة المستندات فوراً دون الحاجة لحفظها أولاً.
+- **ترجمة صوتية من الطرفين**: لكل مربع نص ميكروفون خاص، فيتكلم كل طرف بلغته وتظهر الترجمة في المربع الآخر. على الأجهزة التي لا تدعم التعرف الصوتي في المتصفح (مثل هواتف Huawei بدون خدمات جوجل) يُسجَّل الصوت ويُرسل للخادم لتحويله إلى نص عبر OpenAI Whisper.
+- **وضع المحادثة المباشرة**: يتحدث الطرفان بالتناوب دون الضغط على أي زر، ويكتشف التطبيق نهاية الكلام تلقائياً ويعرض المحادثة مترجمة.
+- **ترجمة الملفات والمستندات** (Word، PDF). ملفات Word تحافظ على تنسيقها الأصلي.
+- **ترجمة الصور مع الحفاظ على ستايلها الأصلي**: يُستخرج النص عبر OpenAI Vision، ثم تُرسم الترجمة مكان النص الأصلي.
+- **التقاط صورة مباشرة من كاميرا الهاتف** لترجمة المستندات فوراً.
 - **تسجيل دخول حقيقي عبر Google** (Google Identity Services) بجانب التسجيل بالبريد/كلمة المرور.
-- **واجهة مستخدم متعددة اللغات بالكامل** (عربي، إنجليزي، فرنسي، إسباني، ألماني، صيني، روسي) لكل عناصر الصفحة.
+- **واجهة متعددة اللغات** (عربي، إنجليزي، فرنسي، إسباني، ألماني، صيني، روسي).
+- **تطبيق أندرويد** (TWA) في مجلد `android-app/` يفتح نفس الموقع.
 
-يعتمد الباك اند على Python و Django مع DRF و WebSocket (Channels) للمحادثات الحية. الترجمة الفعلية تعتمد على **Google Translate كمصدر أساسي مع تحول تلقائي إلى MyMemory** كخدمة بديلة عند تعطل أو حظر Google، حتى لا تتوقف الترجمة بالكامل. قاعدة البيانات تدعم **MySQL محلياً افتراضياً**، مع إمكانية التبديل لأي قاعدة بيانات أخرى (مثل PostgreSQL على Neon) في الإنتاج عبر متغير `DATABASE_URL`. تم التركيز على معايير SEO والأداء والأمان (تحديد معدّل الطلبات، إعدادات إنتاج آمنة) واختبارات آلية حقيقية لتكون المنصة جاهزة للإنتاج (Production Ready).
+**التقنيات:** تطبيق واحد بـ **Node.js/Express** في مجلد `backend-node/` يخدم الواجهة الأمامية (`backend-node/public/`، HTML/CSS/JS بدون أطر) والـ API (`/api/*`) معاً على نفس النطاق. قاعدة البيانات **MySQL** عبر Sequelize. الترجمة وتحويل الصوت إلى نص وقراءة الصور تعتمد على **OpenAI** (مع طبقات ترجمة بديلة عند الفشل). تفاصيل البنية في [backend-node/README.md](backend-node/README.md).
 
-## 2. طريقة تثبيت المشروع محلياً
+> مجلد `backend/` (Django) وملفات `Dockerfile` و`Procfile` و`render.yaml` و`run.sh` من النسخة القديمة التي كانت على Render وVercel، ولم تعد مستخدمة في الإنتاج.
+
+## 2. طريقة تثبيت المشروع وتشغيله محلياً
 ### المتطلبات المسبقة:
-- Python 3.12+
-- MySQL Server (محلياً)
-- Tesseract OCR (لميزة ترجمة الصور فقط - راجع القسم 5)
-- Node.js غير مطلوب؛ الواجهة الأمامية Vanilla HTML/CSS/JS بالكامل
+- Node.js 18 أو أحدث
+- MySQL Server
 
 ### الخطوات:
-1. استنساخ المستودع (أو فتح المجلد).
-2. إعداد البيئة الافتراضية للغة البايثون:
-   ```bash
-   cd backend
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. تثبيت الحزم المطلوبة:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. نسخ `backend/.env.example` إلى `backend/.env` وتعديل القيم (راجع تفاصيل كل قسم في هذا الدليل):
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-5. تشغيل المايجريشن (بعد إعداد قاعدة البيانات في القسم 4):
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser   # اختياري: لإنشاء حساب مدير
-   ```
+```bash
+cd backend-node
+npm install
+cp .env.example .env   # ثم املأ القيم الحقيقية
+npm start              # أو: npm run dev لإعادة التشغيل تلقائياً عند تعديل الكود
+```
+يفتح الموقع على `http://localhost:8000`، ولوحة تحكم الأدمن على `/admin.html`.
 
-## 3. طريقة تشغيل المشروع
-### الطريقة السريعة (تشغيل الباك اند والواجهة معاً بأمر واحد)
-```bash
-./run.sh
-```
-يشغّل Django على المنفذ 8000 والواجهة الأمامية على المنفذ 8001، ويتحقق أولاً أن المنفذين غير مستخدمين من برنامج آخر. لتغيير المنافذ عند التعارض:
-```bash
-BACKEND_PORT=8010 FRONTEND_PORT=8011 ./run.sh
-```
-
-### الطريقة اليدوية
-لتشغيل سيرفر الباك اند للتطوير:
-```bash
-cd backend
-source venv/bin/activate
-python manage.py runserver
-```
-للواجهة الأمامية:
-```bash
-cd backend-node/public
-python3 -m http.server 8001
-# افتح http://localhost:8001
-```
-
-## 4. طريقة إنشاء قاعدة البيانات (MySQL محلياً)
-1. تأكد من تشغيل خادم MySQL محلياً.
-2. أنشئ قاعدة البيانات ومستخدماً (أو استخدم `root` مباشرة):
+## 3. طريقة إنشاء قاعدة البيانات (MySQL)
+1. أنشئ قاعدة البيانات:
    ```sql
-   CREATE DATABASE ai_talker_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE DATABASE ai_talker_node CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
-3. اضبط `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` في `backend/.env` لتطابق بيانات اتصالك.
-4. شغّل أوامر التهيئة في جانغو:
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
+2. اضبط `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` في `backend-node/.env`.
+3. شغّل الخادم. الجداول تُنشأ تلقائياً عند الإقلاع، وحساب الأدمن يُنشأ تلقائياً إن ضبطت `ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`.
 
-> **قاعدة بيانات الإنتاج**: إذا ضبطت متغير `DATABASE_URL` (مثل رابط PostgreSQL من Neon، راجع القسم 6-أ)، فسيُستخدم تلقائياً بدل إعدادات MySQL المحلية بفضل مكتبة `dj-database-url` — لا حاجة لتعديل الكود.
+## 4. طريقة إعداد تسجيل الدخول بحساب Google
+المشروع يستخدم **Google Identity Services**، فلا يحتاج Client Secret:
 
-## 5. طريقة إعداد ميزة ترجمة الصور (Tesseract OCR)
-هذه الميزة تحتاج محرك Tesseract OCR مثبتاً على مستوى النظام (غير مطلوب لباقي الميزات):
-```bash
-sudo apt-get install -y tesseract-ocr tesseract-ocr-ara tesseract-ocr-eng \
-    tesseract-ocr-fra tesseract-ocr-spa tesseract-ocr-deu \
-    tesseract-ocr-chi-sim tesseract-ocr-chi-tra tesseract-ocr-rus \
-    tesseract-ocr-jpn tesseract-ocr-kor fonts-noto-core fonts-noto-cjk
-```
-على خادم الإنتاج (Docker على Render) هذا مُثبّت تلقائياً عبر `Dockerfile` — لا حاجة لأي إعداد يدوي هناك.
-
-## 6. طريقة إعداد تسجيل الدخول بحساب Google
-المشروع يستخدم **Google Identity Services** (وليس تدفق OAuth القديم القائم على إعادة التوجيه)، لذلك الإعداد أبسط ولا يحتاج Client Secret:
-
-1. اذهب إلى [Google Cloud Console](https://console.cloud.google.com/) وأنشئ مشروعاً جديداً (أو استخدم مشروعاً موجوداً).
+1. اذهب إلى [Google Cloud Console](https://console.cloud.google.com/) وأنشئ مشروعاً (أو استخدم مشروعاً موجوداً).
 2. من **APIs & Services → Credentials**، أنشئ **OAuth client ID** من نوع **Web application**.
-3. في خانة **Authorized JavaScript origins** أضف روابط موقعك، مثل:
-   - `http://localhost:8001` (للتطوير المحلي)
-   - `https://ai-talker-five.vercel.app` (أو رابط موقعك الفعلي على Vercel)
-4. احفظ، وانسخ **Client ID** الناتج (لا تحتاج Client Secret لهذا التدفق).
-5. ضع نفس القيمة في **مكانين**:
-   - متغير البيئة `GOOGLE_CLIENT_ID` في `backend/.env` (وفي متغيرات بيئة Render للإنتاج).
-   - الثابت `GOOGLE_CLIENT_ID` في أعلى قسم "Google Login Logic" داخل `backend-node/public/js/main.js`.
+3. في خانة **Authorized JavaScript origins** أضف:
+   - `https://talker.lughaty.cloud`
+   - `http://localhost:8000` (للتطوير المحلي)
+4. انسخ **Client ID** وضعه في مكانين:
+   - متغير البيئة `GOOGLE_CLIENT_ID` في `backend-node/.env` (على الخادم وعلى جهازك).
+   - الثابت `GOOGLE_CLIENT_ID` في قسم "Google Login Logic" داخل `backend-node/public/js/main.js`.
 
-بدون ضبط القيمة في الطرفين، يبقى زر "المتابعة باستخدام Google" ظاهراً لكنه يعرض رسالة صريحة بأن الميزة غير مفعّلة بعد، بدل تسجيل دخول وهمي.
+## 5. طريقة إعداد إرسال البريد (نموذج تواصل معنا)
+Gmail يحتاج **App Password** خاصة وليس كلمة مرور الحساب:
 
-## 7. طريقة إعداد إرسال البريد (نموذج تواصل معنا)
-Gmail لا يقبل كلمة مرور الحساب العادية للإرسال عبر SMTP، ويحتاج **App Password** خاصة:
-
-1. فعّل **التحقق بخطوتين (2-Step Verification)** على حساب Gmail: myaccount.google.com/security
-2. اذهب إلى myaccount.google.com/apppasswords وأنشئ كلمة مرور تطبيق جديدة (16 حرفاً).
-3. ضع في `backend/.env`:
+1. فعّل **التحقق بخطوتين** على حساب Gmail: myaccount.google.com/security
+2. أنشئ كلمة مرور تطبيق من myaccount.google.com/apppasswords (16 حرفاً).
+3. ضع في `backend-node/.env`:
    ```
    EMAIL_HOST_USER=بريدك@gmail.com
    EMAIL_HOST_PASSWORD=كلمة_المرور_المكوّنة_من_16_حرف
    CONTACT_EMAIL=البريد_الذي_تريد_استقبال_رسائل_الزوار_عليه
    ```
 
-بدون هذين المتغيرين، يعمل النظام تلقائياً بوضع `console` (يطبع الرسالة في السجلات فقط، مناسب للتطوير المحلي دون إعداد بريد حقيقي).
-
-## 8. حدود معدّل الطلبات (Rate Limiting)
-لحماية الخادم وحصة خدمات الترجمة المجانية من إساءة الاستخدام، تم ضبط الحدود التالية (`backend/core/settings.py`):
+## 6. حدود معدّل الطلبات (Rate Limiting)
+مضبوطة في `backend-node/src/middleware/rateLimit.js` لكل عنوان IP:
 
 | الواجهة | الحد |
 |---|---|
 | رفع ملف/صورة للترجمة | 10 طلبات/ساعة |
 | نموذج تواصل معنا | 5 طلبات/ساعة |
-| تسجيل حساب / تسجيل دخول بـ Google | 20 طلب/ساعة |
-| أي طلب API آخر (زائر غير مسجل) | 100 طلب/ساعة |
+| تسجيل حساب / تسجيل الدخول | 20 طلب/ساعة |
+| تحويل الصوت إلى نص والترجمة الصوتية | 60 طلب/ساعة |
 
-تجاوز الحد يُرجع استجابة `429 Too Many Requests` مع رسالة تحدد وقت إعادة المحاولة.
+تجاوز الحد يُرجع `429 Too Many Requests`.
 
-## 9. الدليل الشامل لرفع المشروع مجاناً (خطوة بخطوة)
-الباك اند يُنشر عبر **Docker** على **Render** مباشرة من `Dockerfile` في جذر المستودع (لا حاجة لضبط Build/Start Command يدوياً)، وقاعدة البيانات يمكن أن تبقى MySQL محلية للتطوير فقط، بينما يُنصح باستخدام **Neon** (PostgreSQL مُدار) أو أي قاعدة MySQL مُدارة للإنتاج. الواجهة الأمامية والملفات عبر **Vercel** و **Cloudinary**.
+## 7. النشر على Hostinger VPS (أول مرة)
+الموقع يعمل على خادم Hostinger VPS: يستقبل **nginx** الطلبات على `talker.lughaty.cloud` (مع شهادة HTTPS) ويمرّرها إلى تطبيق Node.js الذي يديره **pm2**.
 
-### أ. قاعدة بيانات الإنتاج (Neon - مجاني، اختياري)
-1. اذهب إلى [Neon.tech](https://neon.tech/) وأنشئ حساباً ومشروعاً جديداً باسم `aitalker-db`.
-2. اختر إصدار PostgreSQL المناسب (15 أو أحدث) والمنطقة الأقرب لك.
-3. انسخ رابط الاتصال (Connection String) الذي يبدأ بـ `postgresql://` من لوحة التحكم.
-4. **لا تشارك هذا الرابط أو تضعه في أي ملف يُرفع لـ Git** — ضعه فقط في متغير `DATABASE_URL` على Render مباشرة (Environment Variables في لوحة التحكم).
-
-### ب. إعداد Cloudinary لتخزين الملفات (بدون بطاقة بنكية)
-1. أنشئ حساباً مجانياً على [Cloudinary](https://cloudinary.com/).
-2. من لوحة التحكم، انسخ رابط **API Environment variable** (يبدأ بـ `cloudinary://...`).
-3. ضعه في متغير `CLOUDINARY_URL`.
-
-### ج. رفع الباك اند (Django) على Render (مجاني، عبر Docker)
-1. ارفع كود المشروع بالكامل إلى مستودع GitHub خاص بك.
-2. في [Render.com](https://render.com/)، أنشئ **New → Blueprint** واختر المستودع — سيقرأ Render ملف `render.yaml` تلقائياً ويُعد خدمة Docker باسم `ai-talker-backend`.
-3. من تبويب **Environment** للخدمة، املأ المتغيرات المطلوبة (المعرّفة بـ `sync: false` في `render.yaml`):
-   - `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS` (رابط Render + رابط الواجهة الأمامية مفصولين بفاصلة)
-   - `DATABASE_URL` (من الخطوة أ)
-   - `CLOUDINARY_URL` (من الخطوة ب)
-   - `GOOGLE_CLIENT_ID` (من القسم 6)
-   - `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `CONTACT_EMAIL` (من القسم 7)
-4. احفظ؛ سيبني Render صورة Docker وينشرها تلقائياً، ويعطيك رابطاً مثل `https://ai-talker-backend.onrender.com`.
-5. أي دفعة (push) جديدة لفرع main تُعيد النشر تلقائياً (`autoDeployTrigger: commit`).
-
-### د. رفع الواجهة الأمامية على Vercel (مجاني)
-1. أنشئ حساباً على [Vercel](https://vercel.com/) بحساب GitHub.
-2. **Add New → Project**، استورد مستودعك.
-3. في إعدادات المشروع: **Root Directory** = `frontend`، **Framework Preset** = `Other`.
-4. تأكد أن `BACKEND_HOST` في `backend-node/public/js/main.js` يشير لرابط Render الصحيح، وأن رابط Vercel مضاف في `CORS_ALLOWED_ORIGINS` و`CSRF_TRUSTED_ORIGINS` بـ `backend/core/settings.py`.
-5. اضغط **Deploy**. ستحصل على رابط مثل `https://ai-talker-five.vercel.app`.
-
-## 10. طريقة إضافة AdSense
-1. سجّل موقعك في [Google AdSense](https://www.google.com/adsense/).
-2. بعد القبول، ستحصل على سكريبتات الإعلانات.
-3. ستجد في `backend-node/public/index.html` عناصر `<div class="ad-banner" data-ad-slot="...">` جاهزة كأماكن للإعلانات (رأسية 728×90، متجاوبة، ومستطيلة 336×280).
-4. استبدل محتواها بالشيفرة المقدمة من AdSense.
-
-## 11. طريقة النسخ الاحتياطي
-- **قاعدة البيانات**: `mysqldump` محلياً، أو النسخ الاحتياطي التلقائي من لوحة تحكم مزود الاستضافة إذا كنت تستخدم قاعدة بيانات مُدارة (Neon يوفر ذلك لـ PostgreSQL).
-- **الملفات (الصوتيات والصور المرفوعة)**: محفوظة في حساب Cloudinary الخاص بك.
-
-## 12. طريقة التحديث والاختبار
-1. أجرِ التعديلات محلياً وشغّل الاختبارات الآلية:
+1. اتصل بالخادم:
    ```bash
-   cd backend
-   python manage.py test translator
+   ssh root@<عنوان-IP-الخادم>
    ```
-2. ارفع التعديلات إلى GitHub.
-3. Render يسحب التحديثات تلقائياً (Auto Deploy) ويعيد بناء صورة Docker.
-4. `migrate` يُنفَّذ تلقائياً عند إقلاع الحاوية (مضمّن في أمر تشغيل `Dockerfile`).
+2. ثبّت Node.js 18+ وMySQL وnginx وpm2 (`npm install -g pm2`)، وأنشئ قاعدة البيانات (القسم 3).
+3. انسخ المستودع وثبّت الحزم:
+   ```bash
+   git clone https://github.com/NizarNaser/ai_talker.git
+   cd ai_talker/backend-node
+   npm install --omit=dev
+   cp .env.example .env   # واملأ القيم الحقيقية (OPENAI_API_KEY، بيانات MySQL، SECRET_KEY...)
+   ```
+4. شغّل التطبيق عبر pm2 واجعله يعمل تلقائياً بعد إعادة تشغيل الخادم:
+   ```bash
+   pm2 start server.js --name ai-talker
+   pm2 save
+   pm2 startup   # ونفّذ الأمر الذي يطبعه
+   ```
+5. اضبط nginx ليمرّر الطلبات إلى منفذ التطبيق (`PORT` في `.env`، افتراضياً 8000):
+   ```nginx
+   server {
+       server_name talker.lughaty.cloud;
+       client_max_body_size 25M;   # لرفع الملفات والصور والتسجيلات الصوتية
 
-## 13. طريقة الصيانة
-- راقب سجلات الأخطاء (Logs) عبر لوحة تحكم Render.
-- لإيقاف الخدمة مؤقتاً، أوقفها من لوحة تحكم Render مباشرة.
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+6. فعّل HTTPS عبر Let's Encrypt:
+   ```bash
+   certbot --nginx -d talker.lughaty.cloud
+   ```
+7. تأكد أن سجل DNS من نوع `A` للنطاق `talker.lughaty.cloud` يشير إلى عنوان IP الخادم.
 
-## 14. سجل التحديثات الرئيسية
-- **قاعدة البيانات**: التبديل من SQLite/PostgreSQL الافتراضي إلى MySQL محلياً، مع بقاء `DATABASE_URL` مدعوماً لأي قاعدة بيانات أخرى في الإنتاج.
-- **ترجمة الملفات والصور**: استعادة الميزة وتطويرها لتشمل الحفاظ على ستايل الصورة الأصلي (وليس فقط تنسيق المستندات)، مع دعم التقاط صورة من كاميرا الهاتف مباشرة.
-- **موثوقية الترجمة**: طبقة `ResilientTranslator` تعتمد Google Translate أساساً وتتحول تلقائياً إلى MyMemory عند فشله، لكل من الترجمة الفورية وترجمة الملفات.
-- **تسجيل الدخول بـ Google**: تطبيق حقيقي عبر Google Identity Services يتحقق من التوكن ويصدر JWT، بدل الحساب الوهمي السابق.
-- **نموذج تواصل معنا**: إرسال بريد حقيقي عبر Gmail SMTP بدل الطباعة في السجلات فقط.
-- **الأمان**: تحديد معدّل الطلبات (Rate Limiting) على كل الواجهات الحساسة، ومنع استخدام `SECRET_KEY`/`ALLOWED_HOSTS` غير آمنين في وضع الإنتاج.
-- **الاختبارات**: مجموعة اختبارات آلية حقيقية (`backend/translator/tests.py`) تعمل دون اتصال إنترنت.
-- **الترجمة متعددة اللغات للواجهة**: استكمال جميع مفاتيح الترجمة الناقصة (الفوتر، المساحات الإعلانية، النوافذ المنبثقة) لكل اللغات السبع المدعومة في واجهة الموقع.
-- **تشغيل مبسّط**: سكريبت `run.sh` لتشغيل الباك اند والواجهة الأمامية معاً بأمر واحد.
+## 8. طريقة التحديث (نشر تعديل جديد)
+الرفع إلى GitHub **لا ينشر تلقائياً**. بعد كل تعديل:
+
+1. على جهازك: احفظ التعديلات وارفعها إلى GitHub:
+   ```bash
+   git push origin main
+   ```
+2. على الخادم: اسحب التعديلات وأعد تشغيل التطبيق:
+   ```bash
+   ssh root@<عنوان-IP-الخادم>
+   cd ai_talker/backend-node   # مسار المستودع على الخادم
+   git pull origin main
+   npm install --omit=dev      # فقط إن تغيّر package.json
+   pm2 restart ai-talker       # اسم التطبيق كما يظهر في: pm2 list
+   ```
+3. تحقّق من الموقع: https://talker.lughaty.cloud/
+
+> عند تعديل `js/main.js` أو `css/style.css` ارفع رقم الإصدار في رابطهما داخل `index.html` (مثل `main.js?v=5` ← `v=6`) حتى تحمّل المتصفحات النسخة الجديدة بدل النسخة المخزنة.
+
+## 9. طريقة الصيانة
+- **حالة التطبيق:** `pm2 status`
+- **السجلات (Logs):** `pm2 logs ai-talker` (وسجلات nginx في `/var/log/nginx/`)
+- **إعادة التشغيل / الإيقاف:** `pm2 restart ai-talker` / `pm2 stop ai-talker`
+- **فحص سريع:** `https://talker.lughaty.cloud/api/health/`
+
+## 10. طريقة النسخ الاحتياطي
+- **قاعدة البيانات:** على الخادم:
+  ```bash
+  mysqldump -u <المستخدم> -p ai_talker_node > backup-$(date +%F).sql
+  ```
+  ويمكن أيضاً تفعيل النسخ الاحتياطي (Snapshots) للـ VPS من لوحة Hostinger.
+- **الملفات المرفوعة:** محفوظة في حساب Cloudinary.
+- **الكود:** محفوظ على GitHub.
+- **ملف `.env`:** غير موجود على GitHub، فاحتفظ بنسخة منه في مكان آمن.
+
+## 11. طريقة إضافة AdSense
+1. سجّل موقعك في [Google AdSense](https://www.google.com/adsense/).
+2. ستجد في `backend-node/public/index.html` عناصر `<div class="ad-banner" data-ad-slot="...">` جاهزة كأماكن للإعلانات.
+3. استبدل محتواها بالشيفرة المقدمة من AdSense. ملف `backend-node/public/ads.txt` يُخدم من جذر الموقع.
 
 google ads :helpinbusiness.count@gmail.com
